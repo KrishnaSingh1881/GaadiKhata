@@ -1,4 +1,4 @@
-# GaadiHisaab — Implementation Plan and Tasks
+# GaadiKhata — Implementation Plan and Tasks
 
 **Updated:** 28 October 2026
 

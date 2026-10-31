@@ -24,7 +24,7 @@ self.addEventListener('fetch',event=>{
 self.addEventListener('push',event=>{
  let data={};try{data=event.data?.json()||{}}catch{}
  const path=typeof data.path==='string'&&/^\\/(reviews|notifications|work)(\\/|$)/.test(data.path)?data.path:'/notifications';
- event.waitUntil(self.registration.showNotification('GaadiHisaab',{body:typeof data.body==='string'?data.body.slice(0,180):'Your workspace has an update.',icon:'/icon-192.png',badge:'/icon-192.png',tag:typeof data.id==='string'?data.id:undefined,data:{path}}));
+ event.waitUntil(self.registration.showNotification('GaadiKhata',{body:typeof data.body==='string'?data.body.slice(0,180):'Your workspace has an update.',icon:'/icon-192.png',badge:'/icon-192.png',tag:typeof data.id==='string'?data.id:undefined,data:{path}}));
 });
 self.addEventListener('notificationclick',event=>{
  event.notification.close();const url=new URL(event.notification.data?.path||'/notifications',self.location.origin).href;

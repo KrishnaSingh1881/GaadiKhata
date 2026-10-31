@@ -1,8 +1,8 @@
-# GaadiHisaab
+# GaadiKhata
 
 A responsive fleet and financial management application for Icchamani Construction.
 
-GaadiHisaab brings Hyva trips, JCB jobs, expenses, client payments, and business ledgers into one workspace. It combines fast data entry with financial reporting, transparent record history, and synchronisation across users and devices.
+GaadiKhata brings Hyva trips, JCB jobs, expenses, client payments, and business ledgers into one workspace. It combines fast data entry with financial reporting, transparent record history, and synchronisation across users and devices.
 
 ## Features
 
@@ -82,13 +82,13 @@ The build produces `dist/`, generates the versioned PWA service worker, and chec
 
 The app is hosted on Cloudflare Workers Static Assets:
 
-https://icchamani-construction.gaadihisaab.workers.dev
+https://icchamani-construction.gaadikhata.workers.dev
 
 This is a regular account deployment, without the temporary preview expiry. Static asset hosting is free. The current shared testing deployment uses the existing Clerk development instance; production authentication requires a controlled domain and Clerk production configuration.
 
 Cloudflare Workers Builds is connected to GitHub with these settings:
 
-- Repository: `KrishnaSingh1881/Icchamani-Construction`
+- Repository: `KrishnaSingh1881/GaadiKhata`
 - Deployment branch: `master`
 - Root directory: `/`
 - Build command: `npm test && npm run build`
@@ -109,3 +109,7 @@ Vite embeds the public settings at build time. Cloudflare runtime variables do n
 ## Security
 
 Keep credentials in environment configuration and server secret storage. Only browser-safe publishable keys belong in `VITE_` variables. Workspace permissions are enforced by the backend.
+
+## Naming compatibility
+
+The product is GaadiKhata. Existing `gaadihisaab` IndexedDB names, sync locks, service-worker cache prefixes, device-export format identifiers, and database job/secret identifiers remain stable for compatibility with saved records and existing installations. These internal identifiers are not the app display name.

@@ -1,5 +1,5 @@
 {
-  "id":"/","name":"GaadiHisaab","short_name":"GaadiHisaab",
+  "id":"/","name":"GaadiKhata","short_name":"GaadiKhata",
   "description":"Work, expenses and payments for Icchamani Construction.",
   "start_url":"/","scope":"/","display":"standalone","orientation":"portrait-primary",
   "background_color":"#f5f1e9","theme_color":"#e6e9e5",

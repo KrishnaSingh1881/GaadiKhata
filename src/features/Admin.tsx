@@ -18,7 +18,7 @@ export function Admin() {
     try {
       const [records,outbox,receipts,drafts]=await Promise.all([db.records.toArray(),db.outbox.toArray(),db.receipts.toArray(),db.drafts.toArray()])
       const blob=new Blob([JSON.stringify({format:'gaadihisaab-device-export-v1',exported_at:new Date().toISOString(),subject:member.clerk_subject,records,outbox,receipts,drafts},null,2)],{type:'application/json'})
-      const url=URL.createObjectURL(blob);const link=document.createElement('a');link.href=url;link.download=`gaadihisaab-device-${new Date().toISOString().slice(0,10)}.json`;link.click();setTimeout(()=>URL.revokeObjectURL(url),1000)
+      const url=URL.createObjectURL(blob);const link=document.createElement('a');link.href=url;link.download=`gaadikhata-device-${new Date().toISOString().slice(0,10)}.json`;link.click();setTimeout(()=>URL.revokeObjectURL(url),1000)
       setMessage('Device export downloaded. This includes unsynced work on this device; it is not a complete server backup.')
     }catch(error){setMessage(error instanceof Error?error.message:'Could not export device data.')}
   }

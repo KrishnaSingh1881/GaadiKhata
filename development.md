@@ -13,7 +13,7 @@ Developer push to GitHub master
 Cloudflare Workers Builds ── npm test && npm run build ── wrangler deploy
         │
         ▼
-https://icchamani-construction.gaadihisaab.workers.dev
+https://icchamani-construction.gaadikhata.workers.dev
         │
         ├── Clerk sign-in ── signed user webhook ── Supabase clerk-sync
         │                                           └── app_members (new users await approval)
@@ -30,9 +30,9 @@ The hosting URL is a regular Cloudflare Workers deployment and does not have the
 
 The project is hosted as a Cloudflare Worker with Static Assets. The deployment definition is [`wrangler.jsonc`](wrangler.jsonc): Worker name `icchamani-construction`, static files from `dist/`, and SPA fallback handling. The public URL is:
 
-https://icchamani-construction.gaadihisaab.workers.dev
+https://icchamani-construction.gaadikhata.workers.dev
 
-The Cloudflare account is connected to the GitHub repository `KrishnaSingh1881/Icchamani-Construction`. Workers Builds watches the `master` branch, uses `/` as the root, runs `npm test && npm run build`, and deploys with `npx wrangler deploy`. Preview builds are disabled. A successful push to `master` therefore rebuilds and updates the same long-lived Worker URL automatically.
+The Cloudflare account is connected to the GitHub repository `KrishnaSingh1881/GaadiKhata`. Workers Builds watches the `master` branch, uses `/` as the root, runs `npm test && npm run build`, and deploys with `npx wrangler deploy`. Preview builds are disabled. A successful push to `master` therefore rebuilds and updates the same long-lived Worker URL automatically.
 
 The build-time public variables in Cloudflare are:
 

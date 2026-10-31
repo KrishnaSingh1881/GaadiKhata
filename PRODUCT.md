@@ -1,4 +1,4 @@
-# GaadiHisaab
+# GaadiKhata
 
 <!-- impeccable:product-schema 1 -->
 
@@ -28,7 +28,7 @@ The production app uses real records, Clerk authentication and Supabase sync. Bo
 
 ## Brand Commitments
 
-Name: GaadiHisaab. Business: Icchamani Construction. The user selected a warm flight-booking reference with rounded light surfaces, crisp hierarchy, restrained peach/pink gradients, strong actions and a compact floating navigation dock. Preserve that direction in both themes.
+Name: GaadiKhata. Business: Icchamani Construction. The user selected a warm flight-booking reference with rounded light surfaces, crisp hierarchy, restrained peach/pink gradients, strong actions and a compact floating navigation dock. Preserve that direction in both themes.
 
 ## Evidence on Hand
 

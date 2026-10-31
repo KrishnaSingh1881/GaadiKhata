@@ -15,7 +15,7 @@ export async function createReportPdf(report:ReportData) {
   const [{jsPDF},encodedFont]=await Promise.all([import('jspdf'),reportFont()])
   const doc=new jsPDF({unit:'mm',format:'a4',compress:true})
   doc.addFileToVFS('NotoSans.ttf',encodedFont);doc.addFont('NotoSans.ttf','NotoSans','normal');doc.setFont('NotoSans')
-  doc.setProperties({title:report.title,author:'Icchamani Construction',creator:'GaadiHisaab'})
+  doc.setProperties({title:report.title,author:'Icchamani Construction',creator:'GaadiKhata'})
   let y=0
   function pageHeader() {
     doc.setFontSize(16);const titleLines=doc.splitTextToSize(report.title,178) as string[]

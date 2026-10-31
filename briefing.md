@@ -1,4 +1,4 @@
-# GaadiHisaab — Our Project Brief
+# GaadiKhata — Our Project Brief
 
 **Updated:** 28 October 2026
 
@@ -10,7 +10,7 @@ This is our shared reference for what we are building. Update it as decisions ch
 
 ## The app in one minute
 
-GaadiHisaab is an internal tracking app for **Icchamani Construction**, starting with **two Hyva trucks and one JCB**. It replaces registers and scattered notes with shared records of work, expenses and payments.
+GaadiKhata is an internal tracking app for **Icchamani Construction**, starting with **two Hyva trucks and one JCB**. It replaces registers and scattered notes with shared records of work, expenses and payments.
 
 It is an **iPhone-first PWA**. Users open a link, add it to their Home Screen and use it like an app. All four business users have iPhones. The language is English and amounts are in rupees.
 

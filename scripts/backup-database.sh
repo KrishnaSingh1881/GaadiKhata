@@ -17,7 +17,7 @@ backup_finish() {
 trap backup_finish EXIT
 # PGDATABASE avoids exposing the connection password in process arguments.
 pg_dump "$DATABASE_URL" --format=custom --no-owner --schema=public --schema=app_private --file="$backup_temp_dir/workspace.dump"
-backup_output="$backup_output_dir/gaadihisaab-$(date -u +%Y%m%dT%H%M%SZ).ghbackup"
+backup_output="$backup_output_dir/gaadikhata-$(date -u +%Y%m%dT%H%M%SZ).ghbackup"
 node scripts/backup-crypto.mjs encrypt "$backup_temp_dir/workspace.dump" "$backup_output"
 printf 'Encrypted backup created: %s\n' "$backup_output"
 
