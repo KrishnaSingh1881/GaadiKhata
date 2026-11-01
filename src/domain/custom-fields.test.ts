@@ -1,9 +1,9 @@
 import {test} from 'node:test'
 import assert from 'node:assert/strict'
 import {learnedFields,parseCustomFields,normalName} from './custom-fields.ts'
-import {auditChanges} from './provenance.ts'
+import {auditChanges,latestCancellation} from './provenance.ts'
 import {fuelCost} from './fuel.ts'
-import {validateRecord,type AnyRecord} from './records.ts'
+import {validateRecord,type AnyRecord,type AuditEvent} from './records.ts'
 
 test('custom fields retain types, reject duplicate names and sync through normal schemas',()=>{
   const fields=parseCustomFields([{label:'Meter reading',type:'number',value:'1234.5'},{label:'Receipt checked',type:'boolean',value:'true'}])
@@ -31,4 +31,20 @@ test('fuel arithmetic rounds exact paise and preserves invalid or absent input a
 test('audit presentation compares changed fields including extras without exposing record bookkeeping',()=>{
   const changes=auditChanges({before_data:{version:1,data:{amount_paise:400000,extras:{Litres:10}},state:'active'},after_data:{version:2,data:{amount_paise:450000,extras:{Litres:12}},state:'active'}})
   assert.deepEqual(changes,[{key:'amount_paise',before:400000,after:450000},{key:'extras.Litres',before:10,after:12}])
+})
+test('audit cards omit empty defaults while retaining zero, false and removed values',()=>{
+  assert.deepEqual(auditChanges({before_data:null,after_data:{data:{note:'',started_at:null,ended_at:null,extras:{Verified:false,Count:0}}}}),[
+    {key:'extras.Verified',before:undefined,after:false},{key:'extras.Count',before:undefined,after:0},
+  ])
+  assert.deepEqual(auditChanges({before_data:{data:{note:'Old note'}},after_data:{data:{note:''}}}),[{key:'note',before:'Old note',after:''}])
+})
+test('cancellation details use the actual latest cancellation rather than the last editor',()=>{
+  const event=(id:number,action:string,actor:string,before:string,after:string):AuditEvent=>({id,action,actor,record_id:'record',before_data:{state:before},after_data:{state:after},reason:`Reason ${id}`,created_at:`2026-11-01T00:00:0${id}Z`})
+  const first=event(1,'cancel','Eshika','completed','cancelled')
+  const restore=event(2,'restore','Krishna','cancelled','completed')
+  const second=event(3,'update','Arohi','completed','cancelled')
+  const edit=event(4,'update','Giyuu','cancelled','cancelled')
+  assert.equal(latestCancellation([edit,first,restore,second]),second)
+  assert.equal(latestCancellation([restore,first]),first)
+  assert.equal(latestCancellation([edit]),undefined)
 })

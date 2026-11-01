@@ -4,23 +4,41 @@ import {NavLink} from 'react-router'
 import {useWorkspace} from '../data/WorkspaceProvider'
 import {useWorkspaceRows} from '../data/useWorkspaceRows'
 import {Button} from '../components/ui/button'
+import {Accordion,AccordionItem,AccordionTrigger,AccordionContent} from '../components/ui/accordion'
 import {kindLabels,recordName,RecordEditor} from './RecordEditor'
 import {Dialog,DialogContent,DialogHeader,DialogTitle,DialogDescription} from '../components/ui/dialog'
 import type {QueueItem} from '../data/database'
 import {useLiveQuery} from 'dexie-react-hooks'
 import {formatMoney} from '../domain/money'
+import {vehicleLabel} from '../domain/vehicle-label'
 import type {AuditEvent,Conflict,Membership} from '../domain/records'
 
 const readable=(key:string)=>key.replaceAll('_',' ').replace(/paise$/,'(₹)')
 function FieldValue({name,value}:{name:string;value:unknown}) {
   const {choices}=useWorkspace()
   const record=typeof value==='string'?choices.find(record=>record.id===value):undefined
-  return <>{record?recordName(record):name==='amount_paise'&&typeof value==='number'?formatMoney(value):value==null?'—':typeof value==='boolean'?(value?'Yes':'No'):typeof value==='object'?JSON.stringify(value):String(value)}</>
+  return <>{record?(record.kind==='vehicle'?vehicleLabel(record.data):recordName(record)):name==='amount_paise'&&typeof value==='number'?formatMoney(value):value==null?'—':typeof value==='boolean'?(value?'Yes':'No'):typeof value==='object'?JSON.stringify(value):String(value)}</>
 }
 export function History({recordId}:{recordId?:string}) {
   const history=useWorkspaceRows<AuditEvent>('audit_events',recordId)
   const {rows:members}=useWorkspaceRows<Membership>('app_members')
-  return <section className="history-section"><h2>Activity history</h2>{history.error&&<p className="form-error" role="alert">{history.error}</p>}{history.rows.map(event=><details open={!!recordId} className="record-card" key={event.id}><summary><strong>{readable(event.action)}</strong><p>{members.find(member=>member.clerk_subject===event.actor)?.display_name??event.actor} · {new Date(event.created_at).toLocaleString('en-IN')}</p>{event.reason&&<p>{event.reason}</p>}</summary><div className="history-values">{auditChanges(event).map(change=><div className="audit-change" key={change.key}><span>{readable(change.key.replace(/^extras\./,''))}</span><div><del><FieldValue name={change.key} value={change.before}/></del><span aria-label="changed to"> → </span><strong><FieldValue name={change.key} value={change.after}/></strong></div></div>)}{event.client_time&&<p className="panel-note">Recorded on device: {new Date(event.client_time).toLocaleString('en-IN')} · confirmed: {new Date(event.created_at).toLocaleString('en-IN')}</p>}</div></details>)}{!history.rows.length&&<p className="panel-note">{history.loading?'Loading history…':'No cached history. Accepted changes appear here after syncing.'}</p>}{history.more&&<Button variant="outline" onClick={history.loadMore}>Load earlier activity</Button>}</section>
+  const {records}=useWorkspace()
+  const label=(key:string)=>key==='state'?'Status':key==='amount_paise'?'Amount':readable(key.replace(/^extras\./,'').replace(/_id$/,''))
+  const actions:Record<string,string>={create:'Created entry',update:'Edited entry',cancel:'Cancelled entry',restore:'Restored entry',resolve_conflict:'Resolved review'}
+  return <section className="history-section"><h2>Change history</h2>{history.error&&<p className="form-error" role="alert">{history.error}</p>}<div className="audit-list">{history.rows.map(event=>{
+    const target=records.find(row=>row.id===event.record_id)
+    const changes=auditChanges(event).filter(change=>!(target?.kind==='vehicle'&&change.key==='name'))
+    const created=event.action==='create'
+    const actor=members.find(member=>member.clerk_subject===event.actor)?.display_name??event.actor
+    const record=records.find(row=>row.id===event.record_id)
+    return <article className="audit-event-card" key={event.id}>
+      <header className="audit-event-header"><span className="audit-person" aria-hidden="true">{actor.trim().slice(0,1).toUpperCase()}</span><div><h3>{actor}</h3><p>{actions[event.action]??readable(event.action)}{!recordId&&record?` · ${recordName(record)}`:''}</p><time dateTime={event.created_at}>{new Date(event.created_at).toLocaleString('en-IN',{day:'numeric',month:'short',year:'numeric',hour:'numeric',minute:'2-digit',second:'2-digit'})}</time></div></header>
+      {event.reason&&<p className="audit-reason"><span>Reason</span>{event.reason}</p>}
+      {created?<Accordion type="single" collapsible className="audit-created"><AccordionItem value="saved"><AccordionTrigger>View saved details ({changes.length})</AccordionTrigger><AccordionContent><dl className="audit-saved-fields">{changes.map(change=><div key={change.key}><dt>{label(change.key)}</dt><dd><FieldValue name={change.key} value={change.after}/></dd></div>)}</dl></AccordionContent></AccordionItem></Accordion>:
+        <div className="audit-edits">{changes.map(change=><section className="audit-field-edit" key={change.key} aria-label={`${label(change.key)} changed`}><h4>{label(change.key)}</h4><div className="audit-value-pair"><div><span>Before</span><p><FieldValue name={change.key} value={change.before==null||change.before===''?'Not set':change.before}/></p></div><div><span>After</span><p><FieldValue name={change.key} value={change.after==null||change.after===''?'Removed':change.after}/></p></div></div></section>)}{!changes.length&&<p className="audit-no-fields">{target?.kind==='vehicle'?'Vehicle identity updated. Vehicles are shown by type and registration.':'No field values changed.'}</p>}</div>}
+      {event.client_time&&Math.abs(Date.parse(event.created_at)-Date.parse(event.client_time))>60000&&<p className="audit-device-time">Entered on device {new Date(event.client_time).toLocaleString('en-IN')}. Synced at the time above.</p>}
+    </article>
+  })}</div>{!history.rows.length&&<p className="panel-note">{history.loading?'Loading changes…':'No changes to show yet. Saved entries and edits appear after syncing.'}</p>}{history.more&&<Button variant="outline" onClick={history.loadMore}>Load earlier changes</Button>}</section>
 }
 export function Reviews() {
   const {member,records,client,sync}=useWorkspace()

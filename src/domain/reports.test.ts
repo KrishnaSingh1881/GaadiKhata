@@ -20,3 +20,12 @@ test('expense fields adapt only from repeated accepted entries in the same categ
   assert.equal(suggestedExpenseFields(records,'repairs').length,0)
   records[2].state='cancelled';assert.equal(suggestedExpenseFields(records,'fuel').length,0)
 })
+test('vehicle statements label profit, loss and break even without a misleading negative profit',()=>{
+  const records=[row('vehicle',{name:'Hyva'}),row('work',{business_date:'2026-10-01',vehicle_id:'v',amount_paise:10000},'completed'),row('expense',{business_date:'2026-10-01',vehicle_id:'v',amount_paise:20000,payment_mode:'Cash'})]
+  records[0].id='v'
+  assert.deepEqual(buildReport(records,'vehicle','v','2026-10-01','2026-10-31').summary.at(-1),['Loss','₹100'])
+  if(records[2].kind==='expense')records[2].data.amount_paise=5000
+  assert.deepEqual(buildReport(records,'vehicle','v','2026-10-01','2026-10-31').summary.at(-1),['Profit','₹50'])
+  if(records[2].kind==='expense')records[2].data.amount_paise=10000
+  assert.deepEqual(buildReport(records,'vehicle','v','2026-10-01','2026-10-31').summary.at(-1),['Break even','₹0'])
+})

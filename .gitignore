@@ -11,3 +11,4 @@ supabase/
 backups/
 *.ghbackup
 *.dump
+.local-test/

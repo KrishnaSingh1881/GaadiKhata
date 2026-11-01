@@ -1,6 +1,6 @@
 import {test} from 'node:test'
 import assert from 'node:assert/strict'
-import {profitChart} from './profit-chart.ts'
+import {chartMaximum,profitChart} from './profit-chart.ts'
 import type {AnyRecord} from './records.ts'
 
 test('profit chart covers calendar boundaries and counts costs once, excluding pending and cancelled rows',()=>{
@@ -17,4 +17,14 @@ test('profit chart covers calendar boundaries and counts costs once, excluding p
   assert.equal(monthly[4].to,'2026-10-31')
   assert.equal(monthly.reduce((sum,p)=>sum+p.earnings,0),10000)
   assert.equal(profitChart([],'2028-02-29','monthly').at(-1)?.to,'2028-02-29')
+})
+test('the chart recalculates accepted edits and cancellations without counting receipts as earnings',()=>{
+  const work={id:'work',kind:'work',version:1,state:'completed',data:{business_date:'2026-11-01',amount_paise:1000000}} as AnyRecord
+  const payment={id:'payment',kind:'payment',version:1,state:'active',data:{business_date:'2026-11-01',amount_paise:500000}} as AnyRecord
+  assert.equal(profitChart([work,payment],'2026-11-01','weekly').at(-1)?.earnings,1000000)
+  const edited={...work,version:2,data:{...work.data,amount_paise:1500000}} as AnyRecord
+  assert.equal(profitChart([edited,payment],'2026-11-01','weekly').at(-1)?.earnings,1500000)
+  assert.equal(profitChart([{...edited,state:'cancelled'},payment],'2026-11-01','weekly').at(-1)?.earnings,0)
+  assert.equal(chartMaximum(1000000),1500000)
+  assert.ok(chartMaximum(0)>0)
 })

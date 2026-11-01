@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="40" viewBox="0 0 64 40" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+  <title>Hyva tipper truck</title>
+  <path d="M4 13 35 5l5 16-30 8Z"/>
+  <path d="m14 11 5 15m5-18 5 15"/>
+  <path d="m33 28 3-6m-7 6 5-7"/>
+  <path d="M43 28V13h8l9 10v5"/>
+  <path d="M47 17h3l5 6h-8Z"/>
+  <path d="M5 29h4m8 0h4m8 0h20m10 0h2M43 25h-4"/>
+  <circle cx="13" cy="32" r="4"/>
+  <circle cx="25" cy="32" r="4"/>
+  <circle cx="54" cy="31" r="5"/>
+</svg>

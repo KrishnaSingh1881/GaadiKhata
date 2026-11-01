@@ -1,12 +1,13 @@
 import {accepted,clientAccount,summary} from './accounting.ts'
-import {formatMoney} from './money.ts'
+import {formatMoney,profitLoss} from './money.ts'
 import type {AnyRecord} from './records.ts'
+import {vehicleLabel} from './vehicle-label.ts'
 
 export type ReportType='client'|'vehicle'|'driver'|'expense'|'acknowledgement'
 export type ReportData={title:string;period:string;summary:[string,string][];rows:{date:string;detail:string;amount:string}[];note:string}
 export function buildReport(records:AnyRecord[],type:ReportType,subject:string,from:string,to:string):ReportData {
   if(from>to)throw new Error('The end date must follow the start date.')
-  const name=(id:string|null)=>{const record=records.find(record=>record.id===id);return record&&'name'in record.data?record.data.name:'Unspecified'}
+  const name=(id:string|null)=>{const record=records.find(record=>record.id===id);return record?.kind==='vehicle'?vehicleLabel(record.data):record&&'name'in record.data?record.data.name:'Unspecified'}
   const selected=accepted(records).filter(record=>'business_date'in record.data&&record.data.business_date>=from&&record.data.business_date<=to&&(
     type==='client'?(record.kind==='work'&&record.state==='completed'||record.kind==='payment')&&'client_id'in record.data&&record.data.client_id===subject:
     type==='vehicle'?'vehicle_id'in record.data&&record.data.vehicle_id===subject&&(record.kind!=='work'||record.state==='completed'):
@@ -21,7 +22,7 @@ export function buildReport(records:AnyRecord[],type:ReportType,subject:string,f
     const earlier=accepted(records).filter(record=>'business_date'in record.data&&record.data.business_date<from)
     const opening=clientAccount(earlier,subject)
     totals=[['Opening balance',formatMoney(opening.pending-opening.credit)],['Work in period',formatMoney(total.billed)],['Received in period',formatMoney(total.received)],['Closing balance',formatMoney(closing.pending-closing.credit)]]
-  }else if(type==='vehicle')totals=[['Completed work',formatMoney(total.billed)],['Expenses',formatMoney(total.expenses)],['Margin',formatMoney(total.margin)]]
+  }else if(type==='vehicle')totals=[['Completed work',formatMoney(total.billed)],['Expenses',formatMoney(total.expenses)],[profitLoss(total.margin).label,formatMoney(profitLoss(total.margin).amount)]]
   else if(type==='acknowledgement')totals=[['Received',formatMoney(total.received)]]
   else totals=[['Recorded payments / costs',formatMoney(selected.reduce((sum,record)=>sum+('amount_paise'in record.data?record.data.amount_paise??0:0),0))]]
   const title=type==='client'?`${name(subject)} - client statement`:type==='vehicle'?`${name(subject)} - vehicle report`:type==='driver'?`${name(subject)} - driver payments`:type==='acknowledgement'?'Payment acknowledgement':'Expense report'

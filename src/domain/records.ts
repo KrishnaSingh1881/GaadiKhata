@@ -51,14 +51,14 @@ export type Operation = {
 export type Conflict = {id:string;record_id:string;proposed_record_id:string;kind:RecordKind;reason:string;participants:string[];proposed_data:Record<string,unknown>;proposed_state:RecordState;current_data:Record<string,unknown>;current_version:number;status:'open'|'resolved';created_at:string;resolved_at:string|null;resolution:string|null}
 export type AuditEvent = {id:number;record_id:string|null;actor:string;action:string;before_data:unknown;after_data:unknown;reason:string;created_at:string;client_time?:string|null}
 export type WriteResult = {status:'accepted';record:AnyRecord}|{status:'needs_review';conflict_id:string}|{status:'rejected';code:string;message:string}
-export type Membership = {clerk_subject:string;display_name:string;email?:string|null;role:'business_user'|'technical_admin';active:boolean;clerk_updated_at?:number;clerk_deleted?:boolean}
+export type Membership = {clerk_subject:string;display_name:string;email?:string|null;role:'business_user'|'technical_admin';active:boolean;clerk_updated_at?:number;clerk_deleted?:boolean;workspace_reset_at?:string}
 
 export function validateRecord(kind:RecordKind,data:unknown,state:RecordState) {
   const parsed=schemas[kind].parse(data)
   if (kind === 'work') {
     const work=parsed as DataMap['work']
     if (!['in_progress','completed','cancelled'].includes(state)) throw new Error('Work must be in progress, completed or cancelled.')
-    if (work.work_type === 'Hyva' && (!work.route_id || !work.material_id || work.unit === 'hours')) throw new Error('Hyva work requires a route, material and carrying unit.')
+    if (work.work_type === 'Hyva' && (!work.material_id || work.unit === 'hours')) throw new Error('Hyva work requires material and carrying unit.')
     if (work.work_type === 'JCB' && (!work.site_id || work.unit !== 'hours')) throw new Error('JCB work requires a site and hours.')
     if (work.ended_at && (!work.started_at || work.ended_at <= work.started_at)) throw new Error('End time must follow start time.')
     if (state === 'completed' && (!work.amount_paise || !work.quantity)) throw new Error('Completed work requires quantity/hours and a manually entered amount.')

@@ -14,5 +14,9 @@ function fields(snapshot:unknown):Record<string,unknown> {
 }
 export function auditChanges(event:Pick<AuditEvent,'before_data'|'after_data'>) {
   const before=fields(event.before_data),after=fields(event.after_data)
-  return [...new Set([...Object.keys(before),...Object.keys(after)])].filter(key=>JSON.stringify(before[key])!==JSON.stringify(after[key])).map(key=>({key,before:before[key],after:after[key]}))
+  const comparable=(value:unknown)=>value===undefined||value===null||value===''?null:value
+  return [...new Set([...Object.keys(before),...Object.keys(after)])].filter(key=>JSON.stringify(comparable(before[key]))!==JSON.stringify(comparable(after[key]))).map(key=>({key,before:before[key],after:after[key]}))
+}
+export function latestCancellation(events:AuditEvent[]) {
+  return events.filter(event=>event.action==='cancel'||auditChanges(event).some(change=>change.key==='state'&&change.after==='cancelled')).sort((a,b)=>b.created_at.localeCompare(a.created_at)||b.id-a.id)[0]
 }

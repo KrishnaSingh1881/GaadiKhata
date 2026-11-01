@@ -42,7 +42,35 @@ export class WorkspaceDatabase extends Dexie {
       }
     })
   }
-  async storeMembership(member:Membership) {await this.metadata.put({key:'membership',value:member})}
+  async applyWorkspaceReset(resetAt:string) {
+    const cutoff=Date.parse(resetAt)
+    if(!Number.isFinite(cutoff))throw new Error('Invalid workspace reset marker.')
+    await this.transaction('rw',[this.records,this.outbox,this.receipts,this.metadata,this.drafts],async()=>{
+      const previous=Date.parse(String((await this.metadata.get('workspace_reset_at'))?.value??''))
+      if(Number.isFinite(previous)&&previous>=cutoff)return
+      const queued=await this.outbox.toArray()
+      const stale=queued.filter(item=>Date.parse(item.operation.client_time)<=cutoff)
+      const staleIds=new Set(stale.map(item=>item.id))
+      await this.records.clear()
+      await this.receipts.clear()
+      await this.outbox.bulkDelete([...staleIds])
+      for(const item of queued.filter(item=>!staleIds.has(item.id))) {
+        if(item.operation.action!=='create'||item.dependencies.some(id=>staleIds.has(id)))await this.outbox.update(item.id,{status:'failed',error:'The workspace was reset. Your new entry is preserved; review its linked records before resubmitting.'})
+      }
+      await this.drafts.filter(draft=>draft.updated_at<=cutoff).delete()
+      await this.metadata.clear()
+      await this.metadata.bulkPut([{key:'cursor',value:0},{key:'workspace_reset_at',value:resetAt}])
+    })
+  }
+  async storeMembership(member:Membership) {
+    const store=async()=>{
+      if(member.workspace_reset_at)await this.applyWorkspaceReset(member.workspace_reset_at)
+      await this.metadata.put({key:'membership',value:member})
+    }
+    // Use the sync lock so an in-flight response cannot repopulate the old cache after reset.
+    if(member.workspace_reset_at&&typeof navigator!=='undefined'&&navigator.locks)await navigator.locks.request(`gaadihisaab-sync-${this.subject}`,store)
+    else await store()
+  }
   async archiveRejected(id:string) {
     await this.transaction('rw',this.outbox,this.receipts,async()=>{
       const item=await this.outbox.get(id);const receipt=await this.receipts.get(id)

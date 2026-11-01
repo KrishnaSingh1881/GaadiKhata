@@ -4,10 +4,19 @@ import {AccessError,type SyncTransport} from './transport.ts'
 
 export class SyncEngine {
   private running:Promise<void>|null=null
+  private rerun=false
+  private forceAgain=false
   constructor(readonly db:WorkspaceDatabase,readonly transport:SyncTransport) {}
   run(force=false):Promise<void> {
-    if(this.running)return this.running
-    const work=()=>this.sync(force)
+    if(this.running){this.rerun=true;this.forceAgain ||=force;return this.running}
+    const work=async()=>{
+      do {
+        this.rerun=false
+        const currentForce=force||this.forceAgain
+        this.forceAgain=false
+        await this.sync(currentForce)
+      }while(this.rerun)
+    }
     this.running=(typeof navigator!=='undefined'&&navigator.locks?navigator.locks.request(`gaadihisaab-sync-${this.db.subject}`,work):work()).finally(()=>{this.running=null})
     return this.running
   }

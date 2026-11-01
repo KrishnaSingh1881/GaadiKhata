@@ -1,6 +1,12 @@
 import type {AnyRecord} from './records.ts'
 import {summary} from './accounting.ts'
 
+export function chartMaximum(maximum:number) {
+  const target=Math.max(100,maximum*1.1)
+  const unit=10**Math.floor(Math.log10(target))
+  return Math.ceil(target/(unit/2))*(unit/2)
+}
+
 export function profitChart(records:AnyRecord[],today:string,period:'weekly'|'monthly') {
   const date=new Date(`${today}T00:00:00Z`)
   const iso=(day:Date)=>day.toISOString().slice(0,10)

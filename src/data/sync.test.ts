@@ -70,3 +70,22 @@ test('a new linked master record is sent before the entry that references it',as
   assert.deepEqual(submitted,[client.record_id,payment.record_id])
   await db.delete()
 })
+test('an entry queued during a running sync is submitted before the requested sync completes',async()=>{
+  const db=new WorkspaceDatabase(crypto.randomUUID())
+  const first=operation(),second=operation()
+  await db.queue(first)
+  let release!:()=>void,started!:()=>void
+  const gate=new Promise<void>(resolve=>{release=resolve})
+  const submittedFirst=new Promise<void>(resolve=>{started=resolve})
+  const submitted:string[]=[]
+  const engine=new SyncEngine(db,{pull:emptyPull,submit:async(op)=>{submitted.push(op.id);if(op.id===first.id){started();await gate}return {status:'accepted',record:record(op)}}})
+  const running=engine.run(true)
+  await submittedFirst
+  await db.queue(second)
+  const requested=engine.run(true)
+  release()
+  await Promise.all([running,requested])
+  assert.deepEqual(submitted,[first.id,second.id])
+  assert.equal(await db.outbox.count(),0)
+  await db.delete()
+})

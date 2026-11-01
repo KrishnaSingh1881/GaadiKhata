@@ -6,10 +6,10 @@ GaadiKhata brings Hyva trips, JCB jobs, expenses, client payments, and business 
 
 ## Features
 
-- **Work tracking:** Hyva trips with routes, materials, quantities, and units; JCB jobs with sites and hours.
-- **Financial records:** Client balances, payments, vehicle expenses, driver payments, and partner ledgers.
+- **Work tracking:** Hyva trips with materials, quantities, units, and optional additional details; JCB jobs with sites and hours.
+- **Financial records:** Client balances, payments, vehicle expenses, driver payments, and vehicle ledgers.
 - **Dashboard:** Fleet availability and weekly/monthly earnings-versus-costs charts, with profit/loss totals and interactive breakdowns.
-- **Faster entry:** Recent choices, favourites, repeat entries, recoverable drafts, and expense-field suggestions based on recorded usage.
+- **Faster entry:** Recent choices, favourites, recoverable drafts, and expense-field suggestions based on recorded usage.
 - **Reliable synchronisation:** Queued submissions, duplicate protection, and conflict review for involved users.
 - **Traceability:** Versioned records and audit history for business changes.
 - **PDF reports:** Generate reports locally for download or sharing; generated PDFs are not uploaded to the database.

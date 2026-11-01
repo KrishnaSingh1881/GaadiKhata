@@ -60,9 +60,9 @@ export function WorkspaceProvider({config,children,offlineSubject}:{config:Publi
     const focus=()=>{if(document.visibilityState==='visible')refresh()}
     window.addEventListener('online',refresh);document.addEventListener('visibilitychange',focus)
     const timer=setInterval(refresh,30000)
-    const channel=client.channel(`workspace-${userId}`).on('postgres_changes',{event:'*',schema:'public',table:'business_records'},refresh).subscribe()
+    const channel=client.channel(`workspace-${userId}`).on('postgres_changes',{event:'*',schema:'public',table:'business_records'},refresh).subscribe(status=>{if(status==='SUBSCRIBED')refresh()})
     // React replays effects in development; the same database must remain reopenable.
-    return ()=>{disposed=true;clearInterval(timer);window.removeEventListener('online',refresh);document.removeEventListener('visibilitychange',focus);void client.removeChannel(channel);db.close({disableAutoOpen:false})}
+    return ()=>{disposed=true;clearInterval(timer);window.removeEventListener('online',refresh);document.removeEventListener('visibilitychange',focus);if(channel)void client.removeChannel(channel);db.close({disableAutoOpen:false})}
   },[db,client,userId,sync])
   async function enqueue(operation:Operation,draftKey?:string) {if(!canManageBusiness(member))throw new Error('This account is not approved to add or change business entries.');await db.queue(operation,draftKey);void sync()}
   async function create(kind:RecordKind,data:Record<string,unknown>,state:RecordState,draftKey?:string) {const operation=newOperation(kind,data,state);await enqueue(operation,draftKey);return operation.record_id}

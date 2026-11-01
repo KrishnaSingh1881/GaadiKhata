@@ -1,10 +1,28 @@
 import {test} from 'node:test'
 import assert from 'node:assert/strict'
-import {parseMoney,formatMoney,businessDate} from './money.ts'
+import {parseMoney,formatMoney,businessDate,profitLoss} from './money.ts'
+import {ledgerRange} from './ledger-period.ts'
 import {clientAccount,summary} from './accounting.ts'
 import {validateRecord,type AnyRecord} from './records.ts'
 
 const uuid='00000000-0000-4000-8000-000000000001'
+test('financial outcomes have consistent labels, unsigned displayed amounts and colour classes',()=>{
+  assert.deepEqual(profitLoss(4325000),{label:'Profit',amount:4325000,className:'result-profit'})
+  assert.deepEqual(profitLoss(-4325000),{label:'Loss',amount:4325000,className:'result-loss'})
+  assert.deepEqual(profitLoss(0),{label:'Break even',amount:0,className:'result-neutral'})
+})
+test('ledger presets include all dates and handle month boundaries and leap years',()=>{
+  assert.deepEqual(ledgerRange('all','2026-11-01'),{from:'0000-01-01',to:'9999-12-31'})
+  assert.deepEqual(ledgerRange('month','2026-11-15'),{from:'2026-11-01',to:'2026-11-15'})
+  assert.deepEqual(ledgerRange('last-month','2026-01-01'),{from:'2025-12-01',to:'2025-12-31'})
+  assert.deepEqual(ledgerRange('last-month','2024-03-01'),{from:'2024-02-01',to:'2024-02-29'})
+})
+test('Hyva work allows optional pickup and destination as extra fields without a route',()=>{
+  const work={business_date:'2026-11-01',vehicle_id:uuid,client_id:uuid,work_type:'Hyva',material_id:uuid,quantity:1,unit:'trip',amount_paise:10000,extras:{Pickup:'Quarry',Destination:'Site'}}
+  const parsed=validateRecord('work',work,'completed')
+  assert.deepEqual(parsed.extras,work.extras)
+  assert.throws(()=>validateRecord('work',{...work,material_id:null},'completed'))
+})
 function row(kind:string,data:unknown,state='active',version=1):AnyRecord {return {id:crypto.randomUUID(),kind,data,state,version,created_at:'2026-10-01T00:00:00Z',updated_at:'2026-10-01T00:00:00Z',created_by:'a',updated_by:'a',change_seq:1} as AnyRecord}
 test('paise are exact, malformed input is rejected, dates follow India',()=>{
   assert.equal(parseMoney('0.29'),29);assert.equal(parseMoney('4500.50'),450050)

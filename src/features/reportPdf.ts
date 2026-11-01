@@ -42,7 +42,7 @@ export async function createReportPdf(report:ReportData) {
     }while(offset<lines.length)
   }
   if(!report.rows.length){doc.text('No accepted entries in this period.',16,y);y+=12}
-  for(const [label,value] of report.summary){ensure(10);doc.setFontSize(10);doc.text(label,16,y);doc.text(value,194,y,{align:'right'});y+=9}
+  for(const [label,value] of report.summary){ensure(10);doc.setFontSize(10);if(label==='Profit')doc.setTextColor(53,110,80);else if(label==='Loss')doc.setTextColor(154,70,70);else doc.setTextColor(47,45,41);doc.text(label,16,y);doc.text(value,194,y,{align:'right'});y+=9}
   const note=doc.splitTextToSize(report.note,178) as string[];ensure(note.length*4+10);doc.setFontSize(8);doc.setTextColor(105,100,94);doc.text(note,16,y+5)
   const pages=doc.getNumberOfPages()
   for(let page=1;page<=pages;page++){doc.setPage(page);doc.setFontSize(8);doc.setTextColor(105,100,94);doc.text(`Generated ${new Date().toLocaleString('en-IN',{timeZone:'Asia/Kolkata'})} IST`,16,287);doc.text(`${page} / ${pages}`,194,287,{align:'right'})}

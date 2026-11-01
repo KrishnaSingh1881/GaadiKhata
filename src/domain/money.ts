@@ -10,6 +10,9 @@ export function formatMoney(paise:number):string {
   if(!Number.isSafeInteger(paise)) throw new Error('Money must be an exact integer number of paise.')
   return new Intl.NumberFormat('en-IN',{style:'currency',currency:'INR',minimumFractionDigits:paise%100?2:0,maximumFractionDigits:2}).format(paise/100)
 }
+export function profitLoss(paise:number) {
+  return {label:paise>0?'Profit':paise<0?'Loss':'Break even',amount:Math.abs(paise),className:paise>0?'result-profit':paise<0?'result-loss':'result-neutral'}
+}
 export function businessDate(now=new Date()) {
   const parts=new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Kolkata',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(now)
   const value=(name:string)=>parts.find(p=>p.type===name)!.value
