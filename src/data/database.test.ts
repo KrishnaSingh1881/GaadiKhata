@@ -39,3 +39,22 @@ test('server reset removes old records, drafts and queue entries once, retaining
   assert.equal((await db.metadata.get('cursor'))?.value,900)
   await db.delete()
 })
+
+test('permanent deletion purges local records and edits, and late responses cannot restore them',async()=>{
+  const db=new WorkspaceDatabase(crypto.randomUUID())
+  const op=newOperation('client',{name:'Trial client'},'active')
+  const record={id:op.record_id,kind:'client',data:op.data,state:'active',version:1,created_by:'admin',updated_by:'admin',created_at:new Date().toISOString(),updated_at:new Date().toISOString(),change_seq:1} as import('../domain/records.ts').AnyRecord
+  await db.storeRecords([record],1)
+  await db.queue({...op,action:'update',expected_version:1})
+  await db.metadata.put({key:'rows:audit_events:all',value:[{record_id:record.id}]})
+  await db.drafts.put({key:`entry:client:${record.id}`,data:{name:'Old draft'},updated_at:Date.now()})
+  await db.storeRecords([],2,[record.id])
+  assert.equal(await db.records.count(),0)
+  assert.equal(await db.outbox.count(),0)
+  assert.equal(await db.drafts.count(),0)
+  assert.equal(await db.metadata.get('rows:audit_events:all'),undefined)
+  await db.storeRecords([record],1)
+  assert.equal(await db.records.count(),0)
+  assert.equal((await db.metadata.get('cursor'))?.value,2)
+  await db.delete()
+})

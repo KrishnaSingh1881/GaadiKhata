@@ -851,3 +851,39 @@ svg {flex-shrink:0}
 .edit-field-label {display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;width:28px;height:28px;padding:5px;color:var(--muted);border-radius:6px}
 .edit-field-label:hover {color:var(--ink);background:var(--soft)}
 .edit-field-label:focus-visible {outline:2px solid var(--ink);outline-offset:2px}
+.permanent-delete-button[data-slot='button'] {color:var(--red);border-color:currentColor}
+
+.client-detail {display:flex;flex-direction:column;gap:16px;margin-top:20px}
+.client-detail>.statement-total {padding:18px 20px}
+.client-detail>.statement-total>strong {margin:4px 0 0;line-height:1.2}
+.client-detail>.record-values {margin:0;gap:9px}
+.client-detail>.detail-actions {margin:0;gap:10px 14px}
+.client-detail>.permanent-delete-button {align-self:flex-start}
+.client-detail>h2 {margin:8px 0 0;padding-top:20px;border-top:1px solid var(--line)}
+.client-detail>.client-transactions {margin-top:0}
+[data-slot='dialog-header'].client-detail-header {display:flex;flex-direction:row;align-items:center;gap:14px;padding-right:24px}
+.client-detail-header>.client-symbol {width:52px;height:52px;border-radius:15px}
+.client-detail-identity {min-width:0}
+.client-detail-identity [data-slot='dialog-title'] {overflow-wrap:anywhere}
+.client-detail-identity [data-slot='dialog-description'] {margin-top:6px;overflow-wrap:anywhere}
+.ledger-entity-heading {flex-wrap:wrap;gap:12px}
+.ledger-detail-identity {display:flex;align-items:center;gap:12px;min-width:0;flex:1 1 180px}
+.ledger-detail-identity>div {min-width:0}
+.ledger-detail-identity h2 {overflow-wrap:anywhere}
+
+.sync-center-actions {display:flex;align-items:center;flex-wrap:wrap;gap:8px 16px;margin-bottom:16px}
+.sync-center-actions>.settings-link {padding:8px 0;min-height:44px}
+.sync-center-workspace>details.record-card>summary {cursor:pointer;line-height:1.5}
+.sync-center-workspace>details.record-card>summary>h2 {display:inline;margin-left:5px}
+.sync-center-workspace>details.record-card>summary>p {margin-top:8px;font-size:13px;line-height:1.55;color:var(--muted)}
+.sync-center-workspace>details.record-card+[data-slot='button'] {margin-top:16px}
+
+.admin-workspace,.sync-center-workspace {display:flex;flex-direction:column;gap:16px;min-width:0}
+.admin-workspace>.page-heading,.sync-center-workspace>.page-heading {margin-bottom:8px}
+.admin-workspace>.record-card,.sync-center-workspace>.record-card {margin:0;flex-shrink:0}
+.admin-workspace>section.record-card>[data-slot='button'] {margin-top:12px}
+.admin-workspace>.record-card>h2 {margin:0 0 10px}
+.admin-workspace>.record-card>.panel-note {margin-top:10px}
+.admin-workspace>.entry-form {margin-top:0}
+.sync-center-workspace>.sync-center-actions {margin-bottom:0}
+.sync-center-workspace>[data-slot='button'] {align-self:flex-start}

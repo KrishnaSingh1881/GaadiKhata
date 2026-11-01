@@ -1,6 +1,8 @@
+import {WorkspaceAccess} from '../components/WorkspaceAccess'
+import {WorkspaceLoading} from '../components/WorkspaceLoading'
 import {canManageBusiness} from '../domain/permissions'
 import {createContext,useCallback,useContext,useEffect,useMemo,useState,type ReactNode} from 'react'
-import {SignOutButton,useAuth} from '@clerk/react'
+import {useAuth} from '@clerk/react'
 import {useLiveQuery} from 'dexie-react-hooks'
 import {WorkspaceDatabase,type QueueItem} from './database'
 import {createWorkspaceClient,getMembership,supabaseTransport,AccessError,ApprovalRequiredError} from './transport'
@@ -12,7 +14,7 @@ import {localChoices} from '../domain/local-records'
 type Context = {
   records:AnyRecord[]; choices:AnyRecord[]; queue:QueueItem[];
   member:Membership;db:WorkspaceDatabase;client:ReturnType<typeof createWorkspaceClient>;sync:()=>Promise<void>;
-  syncing:boolean;syncError:string;create:(kind:RecordKind,data:Record<string,unknown>,state:RecordState,draftKey?:string)=>Promise<string>;
+  trialDeletionEnabled:boolean;syncing:boolean;syncError:string;create:(kind:RecordKind,data:Record<string,unknown>,state:RecordState,draftKey?:string)=>Promise<string>;
   change:(record:AnyRecord,patch:Record<string,unknown>,state:RecordState,action?:Operation['action'],reason?:string,draftKey?:string)=>Promise<void>
 }
 const Workspace=createContext<Context|null>(null)
@@ -30,6 +32,7 @@ export function WorkspaceProvider({config,children,offlineSubject}:{config:Publi
   const [needsApproval,setNeedsApproval]=useState(false)
   const [syncing,setSyncing]=useState(false)
   const [syncError,setSyncError]=useState('')
+  const [trialDeletionEnabled,setTrialDeletionEnabled]=useState(false)
   const records=useLiveQuery(()=>db.records.toArray(),[db],[])
   const queue=useLiveQuery(()=>db.outbox.orderBy('created_at').filter(item=>item.status!=='resolved').toArray(),[db],[])
   const sync=useCallback(async()=>{
@@ -37,8 +40,9 @@ export function WorkspaceProvider({config,children,offlineSubject}:{config:Publi
     setSyncing(true);setSyncError('')
     try {
       const current=await getMembership(client)
-      await db.storeMembership(current);setMember(current);setAccessError('');setNeedsApproval(false)
+      await db.storeMembership(current);setMember(current);setAccessError('');setNeedsApproval(false);setLoading(false)
       await engine.run(true)
+      if(current.role==='technical_admin'){const result=await client.rpc('trial_deletion_enabled');setTrialDeletionEnabled(!result.error&&result.data===true)}else setTrialDeletionEnabled(false)
     } catch(error) {
       if(error instanceof AccessError){setMember(null);setAccessError(error.message);setNeedsApproval(error instanceof ApprovalRequiredError);await db.metadata.put({key:'membership',value:null})}
       else setSyncError(error instanceof Error?error.message:'Unable to connect. Local work is preserved.')
@@ -70,8 +74,8 @@ export function WorkspaceProvider({config,children,offlineSubject}:{config:Publi
     validateRecord(record.kind,{...record.data,...patch},state)
     await enqueue({id:crypto.randomUUID(),record_id:record.id,kind:record.kind,action,expected_version:record.version,data:patch,state,reason,client_time:new Date().toISOString()},draftKey)
   }
-  if(loading)return <div className="connection-screen" role="status"><span className="loading-orbit"/><h1>Opening your workspace…</h1><p>Checking this account’s access.</p></div>
-  if(!member)return <div className="connection-screen"><h1>{needsApproval?'Waiting for workspace approval.':accessError?'Access needs attention.':'Your workspace is not connected yet.'}</h1><p>{accessError||syncError||'Connect to the internet to verify this account. A previously approved account can use its available offline records.'}</p>{needsApproval&&<><p className="setup-small">Send this account ID to your administrator. They can approve it in More → Technical administration → Add or change business access.</p><code className="approval-subject">{userId}</code></>}<button className="plain-primary" onClick={()=>{void sync()}}>Check access again</button><SignOutButton><button className="text-action" type="button">Use another Google account</button></SignOutButton></div>
+  if(loading)return <WorkspaceLoading checkingAccess/>
+  if(!member)return <WorkspaceAccess needsApproval={needsApproval} message={accessError||syncError} syncing={syncing} retry={sync}/>
   const choices=localChoices(records,queue,member.clerk_subject)
-  return <Workspace.Provider value={{records,choices,queue,member,db,client,sync,syncing,syncError,create,change}}>{children}</Workspace.Provider>
+  return <Workspace.Provider value={{records,choices,queue,member,db,client,sync,trialDeletionEnabled,syncing,syncError,create,change}}>{children}</Workspace.Provider>
 }

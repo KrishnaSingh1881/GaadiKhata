@@ -40,7 +40,8 @@ export class SyncEngine {
         await this.db.outbox.update(item.id,{status:auth?'waiting_auth':'queued',error:error instanceof Error?error.message:'Connection unavailable.',next_attempt_at:Date.now()+Math.min(30000,1000*2**Math.min(item.attempts,5))})
         throw error
       }
-      await this.db.transaction('rw',this.db.outbox,this.db.receipts,this.db.records,async()=>{
+      await this.db.transaction('rw',this.db.outbox,this.db.receipts,this.db.records,this.db.metadata,async()=>{
+        if(result.status==='accepted'&&await this.db.metadata.get(`deleted:${result.record.id}`)){await this.db.outbox.delete(item.id);return}
         await this.db.receipts.put({id:item.id,result})
         if(result.status==='accepted') {
           const current=await this.db.records.get(result.record.id)
@@ -55,7 +56,7 @@ export class SyncEngine {
       const cursor=Number((await this.db.metadata.get('cursor'))?.value??0)
       const page=await this.transport.pull(cursor)
       if(page.cursor<cursor||(page.has_more&&page.cursor===cursor))throw new Error('Invalid server cursor. Sync paused without discarding local work.')
-      await this.db.storeRecords(page.records,page.cursor)
+      await this.db.storeRecords(page.records,page.cursor,page.deleted_ids)
       more=page.has_more
     }
     await this.db.metadata.put({key:'last_sync',value:new Date().toISOString()})

@@ -1,3 +1,4 @@
+import {WorkspaceLoading} from './components/WorkspaceLoading'
 import {lazy,Suspense} from 'react'
 import {BrowserRouter,Route,Routes,Navigate} from 'react-router'
 import {readEnvironment} from './config/environment'
@@ -11,7 +12,7 @@ function SetupScreen() {
 }
 export default function App() {
   return <BrowserRouter><PwaUpdate/><Routes>
-    <Route path="/*" element={environment.config?<Suspense fallback={<div className="connection-screen" role="status">Opening your workspace…</div>}><ConnectedApp config={environment.config}/></Suspense>:<SetupScreen/>}/>
+    <Route path="/*" element={environment.config?<Suspense fallback={<WorkspaceLoading/>}><ConnectedApp config={environment.config}/></Suspense>:<SetupScreen/>}/>
     <Route path="*" element={<Navigate to="/" replace/>}/>
   </Routes></BrowserRouter>
 }

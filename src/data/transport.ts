@@ -6,7 +6,7 @@ export class AccessError extends Error {}
 export class ApprovalRequiredError extends AccessError {}
 export type SyncTransport = {
   submit:(operation:Operation)=>Promise<WriteResult>
-  pull:(cursor:number)=>Promise<{records:AnyRecord[];cursor:number;has_more:boolean}>
+  pull:(cursor:number)=>Promise<{records:AnyRecord[];cursor:number;has_more:boolean;deleted_ids?:string[]}>
   reviews?:(ids:string[])=>Promise<Conflict[]>
 }
 export function createWorkspaceClient(config:PublicEnvironment,getToken:()=>Promise<string|null>) {

@@ -19,5 +19,6 @@ docker exec -i "$container_name" psql -U postgres -d gaadihisaab_tests -v ON_ERR
 docker exec -i "$container_name" psql -U postgres -d gaadihisaab_tests -v ON_ERROR_STOP=1 < supabase/tests/administration.sql
 docker exec -i "$container_name" psql -U postgres -d gaadihisaab_tests -v ON_ERROR_STOP=1 < supabase/tests/push.sql
 docker exec -i "$container_name" psql -U postgres -d gaadihisaab_tests -v ON_ERROR_STOP=1 < supabase/tests/admin_access_labels.sql
+docker exec -i "$container_name" psql -U postgres -d gaadihisaab_tests -v ON_ERROR_STOP=1 < supabase/tests/trial_deletion.sql
 node scripts/test-database-concurrency.mjs "$container_name"
 bash scripts/test-backup.sh "$container_name"

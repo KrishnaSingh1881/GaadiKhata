@@ -1,3 +1,4 @@
+import {DeleteRecordButton} from '../components/DeleteRecordButton'
 import {useWorkspace} from '../data/WorkspaceProvider'
 import {Button} from '../components/ui/button'
 import {RecordProvenance} from './RecordProvenance'
@@ -12,6 +13,7 @@ import type {AnyRecord} from '../domain/records'
 export function RecordDetails({record,edit}:{record:AnyRecord;edit:(record:AnyRecord)=>void}) {
   const {choices,member,records}=useWorkspace()
   const current=records.find(row=>row.id===record.id)??record
+  if(record.version>0&&!records.some(row=>row.id===record.id))return <p className="panel-note">This entry was deleted.</p>
   const display=(key:string,value:unknown):string=>{
     if(value==null||value==='')return '—'
     if(key.endsWith('_id')){const linked=choices.find(row=>row.id===value);return linked?.kind==='vehicle'?vehicleLabel(linked.data):String(recordName(linked))}
@@ -22,6 +24,6 @@ export function RecordDetails({record,edit}:{record:AnyRecord;edit:(record:AnyRe
   }
   return <div className="record-details">{current.state==='cancelled'&&<CancellationDetails recordId={current.id}/>}<RecordProvenance record={current}/><dl className="record-values">{Object.entries(current.data).filter(([key,value])=>!(current.kind==='vehicle'&&key==='name')&&value!==null&&value!==''&&!(typeof value==='object'&&Object.keys(value??{}).length===0)).map(([key,value])=><div key={key}><dt>{key==='amount_paise'?'Amount':key==='extras'?'Additional details':key.replace(/_id$/,'').replaceAll('_',' ')}</dt><dd>{display(key,value)}</dd></div>)}</dl><p className="panel-note">{kindLabels[current.kind]} · {current.kind==='work'&&!['cancelled','inactive'].includes(current.state)?'Recorded':current.state.replaceAll('_',' ')} · version {current.version}</p>
     {canManageBusiness(member)&&!['cancelled','inactive'].includes(current.state)&&current.kind!=='material'&&<Button type="button" variant="outline" onClick={()=>edit(current)}>Edit entry</Button>}
-    <History recordId={record.id}/>
+    <DeleteRecordButton record={current}/><History recordId={record.id}/>
   </div>
 }

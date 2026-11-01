@@ -1,3 +1,4 @@
+import {WorkspaceLoading} from '../components/WorkspaceLoading'
 import {ClerkProvider,SignIn,UserButton,useAuth} from '@clerk/react'
 import {WorkspaceProvider} from '../data/WorkspaceProvider'
 import {WorkspaceApp} from '../features/WorkspaceApp'
@@ -19,7 +20,7 @@ function AuthenticatedWorkspace({config}:{config:PublicEnvironment}) {
     }
   },[isLoaded,isSignedIn,userId,online])
   if(!online&&!isSignedIn&&cachedSubject)return <WorkspaceProvider key={cachedSubject} config={config} offlineSubject={cachedSubject}><WorkspaceApp accountControl={<span className="offline-account">Offline</span>}/></WorkspaceProvider>
-  if(!isLoaded)return <div className="connection-screen" role="status">Opening GaadiKhata…</div>
+  if(!isLoaded)return <WorkspaceLoading/>
   if(!isSignedIn)return <div className="sign-in-screen"><div className="setup-brand"><Icon name="route-linear" size={28}/>GaadiKhata</div><SignIn routing="hash"/><p>Icchamani Construction · approved Google accounts only</p></div>
   return <WorkspaceProvider key={userId} config={config}><WorkspaceApp accountControl={<UserButton/>}/></WorkspaceProvider>
 }

@@ -1,3 +1,4 @@
+import {DeleteRecordButton} from '../components/DeleteRecordButton'
 import {useState} from 'react'
 import {NavLink} from 'react-router'
 import {Tabs,TabsList,TabsTrigger,TabsContent} from '../components/ui/tabs'
@@ -24,6 +25,7 @@ export function Ledgers({add,edit}:{add:(kind:RecordKind,data?:Record<string,unk
   const {from,to}=ledgerRange(period,businessDate())
   const entities=choices.filter(row=>row.kind===tab&&row.state==='active')
   const entity=entities.find(row=>row.id===selected)
+  const entityType=entity?.kind==='vehicle'?entity.data.vehicle_type:entity?.kind==='driver'?driverVehicleType(choices,entity.id):null
   const entries=records.filter(row=>{
     if(!entity||!('business_date'in row.data))return false
     if(from&&row.data.business_date<from||to&&row.data.business_date>to)return false
@@ -42,7 +44,7 @@ export function Ledgers({add,edit}:{add:(kind:RecordKind,data?:Record<string,unk
           return <Button key={row.id} type="button" variant="outline" className="ledger-entity" onClick={()=>{setSelected(row.id);setEntryFilter('all')}}><span className={`vehicle-icon ${type?`vehicle-type-${type.toLowerCase()}`:''}`} aria-hidden="true">{type?<WorkTypeIcon type={type}/>:<Icon name="users-group-rounded-linear" size={26}/>}</span><span className="ledger-entity-copy"><strong>{recordName(row)}</strong><small>{row.kind==='vehicle'?row.data.registration:type==='Hyva'?'Hyva driver':type==='JCB'?'JCB operator':'Not assigned'}{row.kind==='driver'&&row.data.phone?` · ${row.data.phone}`:''}{row.version===0?' · saved on this device':''}</small></span><span aria-hidden="true">→</span></Button>
         })}</div>{!entities.length&&<div className="empty-state"><h3>No {kind==='vehicle'?'vehicles':'drivers'} yet.</h3><p>{kind==='vehicle'?'Add vehicles in More to start their ledgers.':'Drivers appear here when you enter their name while recording work.'}</p>{kind==='vehicle'&&<NavLink className="settings-link" to="/more">Go to More</NavLink>}</div>}</>:<>
           <Button type="button" className="ledger-back" variant="ghost" onClick={()=>setSelected('')}>← All {kind==='vehicle'?'vehicles':'drivers'}</Button>
-          <div className="section-heading ledger-entity-heading"><div><h2>{recordName(entity)}</h2>{entity.kind==='vehicle'&&<p className="ledger-registration">{entity.data.registration}</p>}</div><Button type="button" variant="outline" disabled={entity.version===0} onClick={()=>edit(entity)}>Edit {kind}</Button></div>
+          <div className="section-heading ledger-entity-heading"><div className="ledger-detail-identity"><span className={`vehicle-icon ${entityType?`vehicle-type-${entityType.toLowerCase()}`:''}`} aria-hidden="true">{entityType?<WorkTypeIcon type={entityType}/>:<Icon name="users-group-rounded-linear" size={26}/>}</span><div><h2>{recordName(entity)}</h2>{entity.kind==='vehicle'&&<p className="ledger-registration">{entity.data.registration}</p>}</div></div><Button type="button" variant="outline" disabled={entity.version===0} onClick={()=>edit(entity)}>Edit {kind}</Button><DeleteRecordButton record={entity} onDeleted={()=>setSelected('')}/></div>
           <ToggleGroup className="ledger-period" type="single" value={period} onValueChange={value=>{if(value==='all'||value==='month'||value==='last-month')setPeriod(value)}} aria-label="Ledger period"><ToggleGroupItem value="all">All time</ToggleGroupItem><ToggleGroupItem value="month">This month</ToggleGroupItem><ToggleGroupItem value="last-month">Last month</ToggleGroupItem></ToggleGroup>
           <p className="ledger-period-caption">{period==='all'?'All recorded dates':`${from} – ${to}`}</p>
           <dl className="ledger-totals">{kind==='vehicle'?<><div><dt>Work recorded</dt><dd>{formatMoney(totals.billed)}</dd></div><div><dt>Costs</dt><dd>{formatMoney(totals.expenses)}</dd></div><div className={`ledger-result ${result.className}`}><dt>{result.label}</dt><dd>{formatMoney(result.amount)}</dd></div></>:<><div><dt>Work recorded</dt><dd>{completedWork}</dd></div><div><dt>Total paid</dt><dd>{formatMoney(totals.expenses)}</dd></div></>}</dl>

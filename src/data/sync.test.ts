@@ -89,3 +89,19 @@ test('an entry queued during a running sync is submitted before the requested sy
   assert.equal(await db.outbox.count(),0)
   await db.delete()
 })
+
+test('an accepted reply already in flight cannot resurrect a record deleted by an admin',async()=>{
+  const db=new WorkspaceDatabase(crypto.randomUUID()),op=operation()
+  await db.queue(op)
+  let release!:()=>void,started!:()=>void
+  const gate=new Promise<void>(resolve=>{release=resolve}),inFlight=new Promise<void>(resolve=>{started=resolve})
+  const engine=new SyncEngine(db,{pull:emptyPull,submit:async()=>{started();await gate;return {status:'accepted',record:record(op)}}})
+  const running=engine.run()
+  await inFlight
+  await db.storeRecords([],undefined,[op.record_id])
+  release();await running
+  assert.equal(await db.records.count(),0)
+  assert.equal(await db.receipts.count(),0)
+  assert.equal(await db.outbox.count(),0)
+  await db.delete()
+})

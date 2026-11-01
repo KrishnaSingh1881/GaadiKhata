@@ -30,9 +30,19 @@ export class WorkspaceDatabase extends Dexie {
       return item
     })
   }
-  async storeRecords(records:AnyRecord[],cursor?:number) {
-    await this.transaction('rw',this.records,this.metadata,async()=>{
+  async storeRecords(records:AnyRecord[],cursor?:number,deletedIds:string[]=[]) {
+    await this.transaction('rw',[this.records,this.metadata,this.outbox,this.receipts,this.drafts],async()=>{
+      if(deletedIds.length) {
+        const removed=new Set(deletedIds)
+        await this.records.bulkDelete(deletedIds)
+        await this.metadata.bulkPut(deletedIds.map(id=>({key:`deleted:${id}`,value:true})))
+        await this.outbox.filter(item=>removed.has(item.operation.record_id)||Object.entries(item.operation.data).some(([key,value])=>key.endsWith('_id')&&removed.has(String(value)))).delete()
+        await this.receipts.filter(item=>item.result.status==='accepted'&&removed.has(item.result.record.id)).delete()
+        await this.drafts.filter(item=>deletedIds.some(id=>JSON.stringify(item).includes(id))).delete()
+        await this.metadata.filter(item=>item.key.startsWith('rows:')).delete()
+      }
       for(const incoming of records) {
+        if(await this.metadata.get(`deleted:${incoming.id}`))continue
         const current=await this.records.get(incoming.id)
         if(!current||incoming.version>=current.version)await this.records.put(incoming)
       }

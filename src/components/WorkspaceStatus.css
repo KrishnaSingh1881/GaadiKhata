@@ -1,0 +1,24 @@
+.workspace-status-screen .workspace-status-shell {width:100%;max-width:390px;min-width:0}
+.workspace-status-brand {display:flex;justify-content:center;align-items:center;gap:10px;margin:0 0 28px;text-align:left}
+.workspace-status-brand>svg {color:var(--warm)}
+.workspace-status-brand>span {font-family:'Manrope Variable',sans-serif;font-size:22px;font-weight:750;line-height:1.3;letter-spacing:-.025em}
+.workspace-status-brand small {display:block;margin-top:3px;font-family:'DM Sans Variable',sans-serif;font-size:12px;font-weight:400;letter-spacing:0;color:var(--muted)}
+.workspace-status-screen .workspace-status-card {display:flex;flex-direction:column;gap:0;padding:28px 24px 24px;border:1px solid var(--line);border-radius:22px;background:var(--panel);color:var(--ink);box-shadow:none;min-width:0}
+.workspace-status-card .workspace-status-header {display:block;padding:0;text-align:center}
+.workspace-status-visual {position:relative;display:grid;place-items:center;width:104px;height:104px;margin:0 auto 24px;border-radius:50%;background:var(--warm-ground);color:var(--warm)}
+.workspace-status-visual.is-approval {background:var(--hyva-ground);color:var(--hyva-accent)}
+.workspace-status-halo {position:absolute;inset:8px;border:1px solid currentColor;border-radius:50%;opacity:.18;pointer-events:none}
+.workspace-status-loader {display:grid;place-items:center}
+.workspace-status-header h1 {margin:0;font-family:'Manrope Variable',sans-serif;font-size:25px;font-weight:650;line-height:1.25;letter-spacing:-.025em;text-wrap:balance}
+.workspace-status-header [data-slot='card-description'] {margin:12px 0 0;color:var(--muted);font-size:14px;line-height:1.6}
+.workspace-status-badge[data-slot='badge'] {display:inline-flex;margin:0 auto 16px;padding:5px 9px;font-size:11px;font-weight:500;color:var(--green);border-color:var(--line)}
+.workspace-status-card .workspace-status-content {padding:0;margin-top:20px;color:var(--muted);font-size:13px;line-height:1.6;overflow-wrap:anywhere}
+.workspace-status-content p {margin:0 0 12px}
+.workspace-status-content p:last-child {margin-bottom:0}
+.workspace-status-card .workspace-status-actions {display:flex;flex-direction:column;gap:10px;padding:0;margin-top:24px}
+.workspace-status-actions>[data-slot='button'] {width:100%;min-height:46px;font-size:14px}
+.workspace-status-footnote {margin:18px 12px 0;text-align:center;color:var(--muted);font-size:12px;line-height:1.6}
+@media(max-width:360px) {.workspace-status-screen .workspace-status-card {padding:24px 18px}.workspace-status-header h1 {font-size:23px}}
+.workspace-status-account {padding:12px 14px;margin-bottom:16px;border-radius:12px;background:var(--soft);text-align:left;overflow-wrap:anywhere}
+.workspace-status-account span {display:block;font-size:12px;color:var(--muted)}
+.workspace-status-account strong {display:block;margin-top:3px;font-size:14px;font-weight:500;color:var(--ink)}
