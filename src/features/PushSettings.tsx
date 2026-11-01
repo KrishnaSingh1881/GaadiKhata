@@ -1,10 +1,13 @@
 import {useEffect,useState} from 'react'
 import {useWorkspace} from '../data/WorkspaceProvider'
 import {Button} from '../components/ui/button'
+import {Dialog,DialogContent,DialogHeader,DialogTitle,DialogDescription} from '../components/ui/dialog'
+import {InstallApp} from './InstallApp'
 import {subscribeDevice} from '../data/push'
 
 export function PushSettings() {
   const {client}=useWorkspace()
+  const [settingsHelp,setSettingsHelp]=useState(false)
   const [enabled,setEnabled]=useState(false),[busy,setBusy]=useState(false),[message,setMessage]=useState('')
   const [registration,setRegistration]=useState<ServiceWorkerRegistration|null>(null)
   const key=String(import.meta.env.VITE_WEB_PUSH_PUBLIC_KEY??'').trim()
@@ -44,11 +47,10 @@ export function PushSettings() {
       setEnabled(false);setMessage('Notifications are off on this device.')
     }catch(error){setMessage(error instanceof Error?error.message:'Could not disable notifications.')}finally{setBusy(false)}
   }
-  return <section className="record-card"><h2>Push notifications</h2><p className="panel-note">Get updates when work starts, finishes, or needs a review.</p>
-    {needsInstall?<p className="panel-note">On iPhone or iPad, open this link in Safari, tap Share → Add to Home Screen, then open the installed app to enable notifications.</p>:!supported?<p className="panel-note">This browser does not support push notifications. Open the app in Chrome on Android, or install it from Safari on iPhone.</p>:<>
-      {!key?<p className="panel-note">Notifications are not ready yet. Reload after the app update, or contact your administrator.</p>:<Button type="button" variant="outline" disabled={busy||(!enabled&&!registration)} onClick={()=>void(enabled?disable():enable())}>{busy?'Updating…':enabled?'Turn off notifications':!registration?'Preparing notifications…':'Enable notifications'}</Button>}
-      {Notification.permission==='denied'&&<p className="panel-note">Notifications are blocked. Open this site’s notification permissions in your browser or device settings and choose Allow.</p>}
-    </>}
+  const blocked=supported&&Notification.permission==='denied'
+  return <section className="record-card notification-setup"><h2>Push notifications</h2><p className="panel-note">Work updates and reviews, on your device.</p>
+    {needsInstall?<><p className="panel-note">Install the app first to enable notifications.</p><InstallApp compact/></>:!supported?<p className="panel-note">Notifications aren’t supported in this browser.</p>:blocked?<Button type="button" variant="outline" onClick={()=>setSettingsHelp(true)}>Notification settings</Button>:<Button type="button" variant="outline" disabled={busy||(!enabled&&(!registration||!key))} onClick={()=>void(enabled?disable():enable())}>{busy?'Updating…':enabled?'Turn off notifications':!key?'Notifications unavailable':!registration?'Preparing notifications…':'Enable notifications'}</Button>}
     {message&&<p className="panel-note" role="status">{message}</p>}
+    <Dialog open={settingsHelp} onOpenChange={setSettingsHelp}><DialogContent className="app-dialog"><DialogHeader><DialogTitle>Allow notifications</DialogTitle><DialogDescription>{ios&&installed?'Open Settings → Notifications → GaadiKhata and turn on Allow Notifications.':'Open this site’s permissions in your browser settings and allow Notifications.'}</DialogDescription></DialogHeader><Button type="button" className="setup-dialog-action" onClick={()=>{setSettingsHelp(false);window.location.reload()}}>Check again</Button></DialogContent></Dialog>
   </section>
 }

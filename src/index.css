@@ -833,6 +833,7 @@ svg {flex-shrink:0}
 .cancellation-details dd {margin:0;overflow-wrap:anywhere;font-weight:500}
 .cancellation-details>p {margin:0;font-size:13px;line-height:1.5;color:var(--muted)}
 .record-details>[data-slot='button'] {display:flex;width:100%;min-height:46px;margin-top:12px}
+.notification-setup>[data-slot='button'],.install-card>[data-slot='button'],.setup-dialog-action {width:100%;min-height:44px;margin-top:14px}
 :is(.work-record-icon,.client-transaction-icon,.vehicle-icon).vehicle-type-hyva {width:44px;height:44px;background:var(--hyva-ground);color:var(--hyva-accent)}
 :is(.work-record-icon,.client-transaction-icon,.vehicle-icon).vehicle-type-jcb {width:44px;height:44px;background:var(--jcb-ground);color:var(--jcb-accent)}
 .production-app .home-fleet .fleet-list {display:grid;gap:10px;padding:0;background:none;border-radius:0}
