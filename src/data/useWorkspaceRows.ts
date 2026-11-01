@@ -2,7 +2,7 @@ import {useEffect,useState} from 'react'
 import {useLiveQuery} from 'dexie-react-hooks'
 import {useWorkspace} from './WorkspaceProvider'
 
-type Table='notifications'|'review_conflicts'|'audit_events'|'app_members'|'backup_runs'
+type Table='notifications'|'review_conflicts'|'audit_events'|'app_members'|'backup_runs'|'form_labels'
 export function useWorkspaceRows<T>(table:Table,recordId?:string) {
   const {db,client}=useWorkspace()
   const key=`rows:${table}:${recordId??'all'}`

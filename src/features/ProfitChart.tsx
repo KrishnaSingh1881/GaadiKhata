@@ -46,7 +46,7 @@ export function ProfitChart() {
       </div></div>
       {earnings===0&&costs===0&&<p className="profit-empty">Your chart will fill as work and expenses are recorded.</p>}
       <p className="profit-sync-status" role="status">{syncError?'Sync delayed · showing last confirmed records':syncing?'Updating confirmed records…':pending?`${pending} ${pending===1?'change':'changes'} awaiting sync or review`:updated?`Updated ${updated} IST`:'Waiting for first sync'}{pending>0&&syncing?` · ${pending} pending`:''}</p>
-      <p className="profit-footnote">Based on recorded completed work and expenses. Tap a pair for details.</p>
+      <p className="profit-footnote">Based on recorded work and expenses. Tap a pair for details.</p>
     </div>
   </section>
 }

@@ -79,7 +79,7 @@ function More({add}:{add:(kind:RecordKind)=>void}) {
       <ToggleGroupItem value="light" aria-label="Light appearance">Light</ToggleGroupItem><ToggleGroupItem value="dark" aria-label="Dark appearance">Dark</ToggleGroupItem><ToggleGroupItem value="system" aria-label="System appearance">System</ToggleGroupItem>
     </ToggleGroup></div>
     <div className="vehicle-settings"><div><h2>Vehicles</h2><p>Add vehicles here. Their work and costs appear in Ledgers.</p></div><Button type="button" variant="outline" onClick={()=>add('vehicle')}>Add vehicle</Button></div>
-    {member.role==='technical_admin'&&<NavLink className="setup-mockup-link" to="/admin">Technical administration<Icon name="arrow-right-linear" size={18}/></NavLink>}
+    {member.role==='technical_admin'&&<NavLink className="setup-mockup-link" to="/admin">Signups, access and administration<Icon name="arrow-right-linear" size={18}/></NavLink>}
     <div className="more-notifications"><PushSettings/></div>
     <InstallApp/>
     <p className="panel-note">{queue.length} local changes awaiting confirmation or review. Clearing this browser’s data can lose changes that have not reached the server.</p>

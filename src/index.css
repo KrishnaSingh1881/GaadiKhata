@@ -843,3 +843,11 @@ svg {flex-shrink:0}
 .production-app .home-fleet .record-values {margin:12px 0 8px;gap:6px;font-size:13px;line-height:1.5}
 .production-app .home-fleet .record-values dd {margin:0;font-size:14px}
 .production-app .home-fleet .settings-link {width:100%;min-height:44px;padding:8px 0;margin:0;border-top:1px solid var(--line);font-size:14px}
+
+.editor-fields {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:17px 12px}
+.editor-fields>* {grid-column:1/-1;min-width:0}
+.editor-fields>.editor-field-half {grid-column:span 1}
+.editor-field-half .field-label {min-height:24px}
+.edit-field-label {display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;width:28px;height:28px;padding:5px;color:var(--muted);border-radius:6px}
+.edit-field-label:hover {color:var(--ink);background:var(--soft)}
+.edit-field-label:focus-visible {outline:2px solid var(--ink);outline-offset:2px}

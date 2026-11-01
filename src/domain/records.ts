@@ -57,11 +57,11 @@ export function validateRecord(kind:RecordKind,data:unknown,state:RecordState) {
   const parsed=schemas[kind].parse(data)
   if (kind === 'work') {
     const work=parsed as DataMap['work']
-    if (!['in_progress','completed','cancelled'].includes(state)) throw new Error('Work must be in progress, completed or cancelled.')
+    if (!['in_progress','completed','cancelled'].includes(state)) throw new Error('Choose a valid work entry.')
     if (work.work_type === 'Hyva' && (!work.material_id || work.unit === 'hours')) throw new Error('Hyva work requires material and carrying unit.')
     if (work.work_type === 'JCB' && (!work.site_id || work.unit !== 'hours')) throw new Error('JCB work requires a site and hours.')
     if (work.ended_at && (!work.started_at || work.ended_at <= work.started_at)) throw new Error('End time must follow start time.')
-    if (state === 'completed' && (!work.amount_paise || !work.quantity)) throw new Error('Completed work requires quantity/hours and a manually entered amount.')
+    if (state === 'completed' && (!work.amount_paise || !work.quantity)) throw new Error('Work requires quantity/hours and a manually entered amount.')
   } else if (['vehicle','client','driver','partner','material','route','site','expense_category','field_template'].includes(kind)) {
     if (!['active','inactive'].includes(state)) throw new Error('Saved information must be active or inactive.')
   } else if (!['active','cancelled'].includes(state)) throw new Error('Financial entries must be active or cancelled.')

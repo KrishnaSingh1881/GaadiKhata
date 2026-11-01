@@ -22,7 +22,7 @@ export function buildReport(records:AnyRecord[],type:ReportType,subject:string,f
     const earlier=accepted(records).filter(record=>'business_date'in record.data&&record.data.business_date<from)
     const opening=clientAccount(earlier,subject)
     totals=[['Opening balance',formatMoney(opening.pending-opening.credit)],['Work in period',formatMoney(total.billed)],['Received in period',formatMoney(total.received)],['Closing balance',formatMoney(closing.pending-closing.credit)]]
-  }else if(type==='vehicle')totals=[['Completed work',formatMoney(total.billed)],['Expenses',formatMoney(total.expenses)],[profitLoss(total.margin).label,formatMoney(profitLoss(total.margin).amount)]]
+  }else if(type==='vehicle')totals=[['Work recorded',formatMoney(total.billed)],['Expenses',formatMoney(total.expenses)],[profitLoss(total.margin).label,formatMoney(profitLoss(total.margin).amount)]]
   else if(type==='acknowledgement')totals=[['Received',formatMoney(total.received)]]
   else totals=[['Recorded payments / costs',formatMoney(selected.reduce((sum,record)=>sum+('amount_paise'in record.data?record.data.amount_paise??0:0),0))]]
   const title=type==='client'?`${name(subject)} - client statement`:type==='vehicle'?`${name(subject)} - vehicle report`:type==='driver'?`${name(subject)} - driver payments`:type==='acknowledgement'?'Payment acknowledgement':'Expense report'
