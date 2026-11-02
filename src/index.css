@@ -887,3 +887,24 @@ svg {flex-shrink:0}
 .admin-workspace>.entry-form {margin-top:0}
 .sync-center-workspace>.sync-center-actions {margin-bottom:0}
 .sync-center-workspace>[data-slot='button'] {align-self:flex-start}
+.ledger-totals .ledger-total-filter[data-slot='button'] {display:flex;flex-direction:column;align-items:flex-start;justify-content:center;gap:4px;width:100%;height:100%;min-height:72px;padding:10px;text-align:left;white-space:normal;border:1px solid transparent;border-radius:12px}
+.ledger-total-filter>span {font-size:12px;color:var(--muted)}
+.ledger-total-filter>strong {font-family:'Manrope Variable',sans-serif;font-size:clamp(20px,4.5vw,28px);font-weight:700;font-variant-numeric:tabular-nums;letter-spacing:-.02em;overflow-wrap:anywhere;max-width:100%}
+.ledger-totals .ledger-total-filter[aria-pressed='true'] {background:var(--soft);border-color:var(--focus)}
+.ledger-total-filter.result-profit>span {color:var(--green)}
+.ledger-total-filter.result-loss>span {color:var(--red)}
+.ledger-totals dd.ledger-total-action {margin:0}
+.client-detail-header .client-detail-identity {flex:1}
+.client-primary-actions {display:grid;grid-template-columns:minmax(0,3fr) minmax(0,1fr);gap:12px}
+.client-primary-actions>[data-slot='button'] {width:100%;min-width:0;min-height:48px;white-space:normal}
+.client-primary-actions>.client-pdf-button[data-slot='button'] {background:var(--warm-ground);color:var(--warm);border-color:transparent;padding:10px}
+.client-primary-actions>.client-pdf-button:only-child {grid-column:1/-1}
+.client-pdf-button svg {width:24px;height:24px}
+.contact-call-button svg {width:22px;height:22px}
+
+.contact-phone-row {display:flex;align-items:center;gap:6px;min-width:0;margin-top:4px}
+.contact-phone-row>[data-slot='dialog-description'],.contact-phone-row>.ledger-registration {margin:0;min-width:0;overflow-wrap:anywhere}
+.contact-phone-row .contact-edit-button[data-slot='button'] {flex-shrink:0;width:44px;height:44px;min-height:44px;padding:11px;color:var(--muted);border-radius:12px}
+.contact-edit-button svg {width:20px;height:20px}
+.contact-call-full[data-slot='button'] {display:flex;align-items:center;justify-content:center;gap:8px;width:100%;min-height:46px;background:var(--green-ground);color:var(--green);border-radius:13px;text-decoration:none}
+.ledger-content>.contact-call-full {margin-top:10px}
