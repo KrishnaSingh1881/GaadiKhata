@@ -120,6 +120,9 @@ svg {flex-shrink:0}
 .app-header {display:flex;align-items:center;justify-content:space-between;padding:9px 23px 16px;min-height:66px;flex-shrink:0}
 .app-brand {display:flex;align-items:center;gap:8px;color:var(--ink);background:none;text-align:left}
 .app-brand>svg {color:var(--warm)}
+.icchamani-logo {display:block;flex:0 0 auto}
+.icchamani-logo-mark {width:30px;height:30px;object-fit:cover;object-position:center 24%;border-radius:8px}
+.icchamani-logo-full {width:144px;height:auto;object-fit:contain}
 .app-brand>span {font-size:17px;font-family:'Manrope Variable',sans-serif;letter-spacing:-.025em;font-weight:750}
 .app-brand small {font-family:'DM Sans Variable',sans-serif;display:block;font-size:9px;font-weight:450;letter-spacing:.01em;color:var(--muted);margin-top:2px}
 .header-actions {display:flex;gap:4px}
