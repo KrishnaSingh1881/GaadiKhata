@@ -4,6 +4,7 @@ import {NavLink} from 'react-router'
 import {useWorkspace} from '../data/WorkspaceProvider'
 import {useWorkspaceRows} from '../data/useWorkspaceRows'
 import {Button} from '../components/ui/button'
+import {FormSelect} from '../components/FormSelect'
 import {Accordion,AccordionItem,AccordionTrigger,AccordionContent} from '../components/ui/accordion'
 import {kindLabels,recordName,RecordEditor} from './RecordEditor'
 import {Dialog,DialogContent,DialogHeader,DialogTitle,DialogDescription} from '../components/ui/dialog'
@@ -23,9 +24,15 @@ export function History({recordId}:{recordId?:string}) {
   const history=useWorkspaceRows<AuditEvent>('audit_events',recordId)
   const {rows:members}=useWorkspaceRows<Membership>('app_members')
   const {records}=useWorkspace()
+  const [search,setSearch]=useState('');const [actorFilter,setActorFilter]=useState('');const [actionFilter,setActionFilter]=useState('');const [kindFilter,setKindFilter]=useState('');const [period,setPeriod]=useState<'all'|'week'|'month'>('all')
+  const range=()=>{if(period==='all')return {from:'',to:''};const now=new Date();const to=now.toISOString().slice(0,10);if(period==='month')return {from:new Date(now.getFullYear(),now.getMonth(),1).toISOString().slice(0,10),to};const day=(now.getDay()+6)%7;return {from:new Date(now.getFullYear(),now.getMonth(),now.getDate()-day).toISOString().slice(0,10),to}}
   const label=(key:string)=>key==='state'?'Status':key==='amount_paise'?'Amount':readable(key.replace(/^extras\./,'').replace(/_id$/,''))
   const actions:Record<string,string>={create:'Created entry',update:'Edited entry',cancel:'Cancelled entry',restore:'Restored entry',resolve_conflict:'Resolved review'}
-  return <section className="history-section"><h2>Change history</h2>{history.error&&<p className="form-error" role="alert">{history.error}</p>}<div className="audit-list">{history.rows.map(event=>{
+  const actorName=(actor:string)=>members.find(member=>member.clerk_subject===actor)?.display_name??actor
+  const {from,to}=range();const filteredHistory=history.rows.filter(event=>{const target=records.find(row=>row.id===event.record_id);const haystack=`${actorName(event.actor)} ${actions[event.action]??event.action} ${target?recordName(target):''} ${JSON.stringify(event.before_data)} ${JSON.stringify(event.after_data)}`.toLowerCase();const day=event.created_at.slice(0,10);return (!search.trim()||haystack.includes(search.trim().toLowerCase()))&&(!actorFilter||event.actor===actorFilter)&&(!actionFilter||event.action===actionFilter)&&(!kindFilter||target?.kind===kindFilter)&&(!from||day>=from)&&(!to||day<=to)})
+  const clearFilters=()=>{setSearch('');setActorFilter('');setActionFilter('');setKindFilter('');setPeriod('all')}
+  const hasFilters=Boolean(search||actorFilter||actionFilter||kindFilter||period!=='all')
+  return <section className="history-section"><h2>Change history</h2>{history.error&&<p className="form-error" role="alert">{history.error}</p>}<div className="history-filters" aria-label="Filter change history"><label className="history-search">Search changes<input aria-label="Search changes" placeholder="Name, entry, or field" value={search} onChange={event=>setSearch(event.target.value)}/></label><div className="history-filter-grid"><label>Person<FormSelect label="Person" value={actorFilter} onChange={setActorFilter} options={[...new Map(history.rows.map(event=>[event.actor,actorName(event.actor)])).entries()].sort((a,b)=>a[1].localeCompare(b[1])).map(([value,label])=>({value,label}))}/></label><label>Action<FormSelect label="Action" value={actionFilter} onChange={setActionFilter} options={Object.entries(actions).map(([value,label])=>({value,label}))}/></label><label>Record<FormSelect label="Record type" value={kindFilter} onChange={setKindFilter} options={[...new Set(history.rows.map(event=>records.find(row=>row.id===event.record_id)?.kind).filter(Boolean))].map(value=>({value:String(value),label:kindLabels[String(value) as keyof typeof kindLabels]??readable(String(value))}))}/></label></div><div className="history-period" role="group" aria-label="History period">{(['all','week','month'] as const).map(value=><Button key={value} type="button" variant={period===value?'secondary':'ghost'} onClick={()=>setPeriod(value)}>{value==='all'?'All time':value==='week'?'This week':'This month'}</Button>)}</div>{hasFilters&&<div className="history-filter-summary"><span>{filteredHistory.length} matching {filteredHistory.length===1?'change':'changes'}</span><Button type="button" variant="ghost" onClick={clearFilters}>Clear all</Button></div>}</div><div className="audit-list">{filteredHistory.map(event=>{
     const target=records.find(row=>row.id===event.record_id)
     const changes=auditChanges(event).filter(change=>!(target?.kind==='vehicle'&&change.key==='name'))
     const created=event.action==='create'
@@ -38,7 +45,7 @@ export function History({recordId}:{recordId?:string}) {
         <div className="audit-edits">{changes.map(change=><section className="audit-field-edit" key={change.key} aria-label={`${label(change.key)} changed`}><h4>{label(change.key)}</h4><div className="audit-value-pair"><div><span>Before</span><p><FieldValue name={change.key} value={change.before==null||change.before===''?'Not set':change.before}/></p></div><div><span>After</span><p><FieldValue name={change.key} value={change.after==null||change.after===''?'Removed':change.after}/></p></div></div></section>)}{!changes.length&&<p className="audit-no-fields">{target?.kind==='vehicle'?'Vehicle identity updated. Vehicles are shown by type and registration.':'No field values changed.'}</p>}</div>}
       {event.client_time&&Math.abs(Date.parse(event.created_at)-Date.parse(event.client_time))>60000&&<p className="audit-device-time">Entered on device {new Date(event.client_time).toLocaleString('en-IN')}. Synced at the time above.</p>}
     </article>
-  })}</div>{!history.rows.length&&<p className="panel-note">{history.loading?'Loading changes…':'No changes to show yet. Saved entries and edits appear after syncing.'}</p>}{history.more&&<Button variant="outline" onClick={history.loadMore}>Load earlier changes</Button>}</section>
+  })}</div>{!filteredHistory.length&&<p className="panel-note">{history.loading?'Loading changes…':hasFilters?'No changes match these filters.':'No changes to show yet. Saved entries and edits appear after syncing.'}</p>}{history.more&&<Button variant="outline" onClick={history.loadMore}>Load earlier changes</Button>}</section>
 }
 export function Reviews() {
   const {member,records,client,sync}=useWorkspace()

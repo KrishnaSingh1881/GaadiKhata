@@ -15,17 +15,21 @@ import {Button} from '../components/ui/button'
 import gsap from 'gsap'
 import {useGSAP} from '@gsap/react'
 import {PushSettings} from './PushSettings'
+import {ContactActionIcon} from '../components/ContactActionIcon'
 import {ClientsPage} from './ClientsPage'
 import {Reports} from './Reports'
 import {Admin} from './Admin'
 import {RecordsPage} from './RecordsPage'
 import {History,Notifications,Reviews,SyncCenter} from './Activity'
 import type {AnyRecord,RecordKind} from '../domain/records'
+import {formatMoney} from '../domain/money'
+import {clientAccount} from '../domain/accounting'
 
 gsap.registerPlugin(useGSAP)
 const navigation=[{path:'/',name:'Home',icon:'home-2-linear'},{path:'/work',name:'Work',icon:'bill-list-linear'},{path:'/clients',name:'Clients',icon:'users-group-rounded-linear'},{path:'/ledgers',name:'Ledgers',icon:'notebook-linear'},{path:'/more',name:'More',icon:'widget-2-linear'}]
 export function WorkspaceApp({accountControl}:{accountControl:ReactNode}) {
-  const {member,sync,syncing,syncError}=useWorkspace()
+  const {member,records,sync,syncing,syncError,clientPendingThresholdPaise}=useWorkspace()
+  const clientsOverLimit=clientPendingThresholdPaise==null?0:records.filter(record=>record.kind==='client'&&clientAccount(records,record.id).pending>=clientPendingThresholdPaise).length
   const [editor,setEditor]=useState<{kind:RecordKind;record?:AnyRecord;initialData?:Record<string,unknown>}|null>(null)
   const location=useLocation()
   const frame=useRef<HTMLDivElement>(null)
@@ -64,12 +68,14 @@ export function WorkspaceApp({accountControl}:{accountControl:ReactNode}) {
     <Route path="/reports" element={<Reports/>}/><Route path="/reviews" element={<Reviews/>}/><Route path="/notifications" element={<Notifications/>}/><Route path="/sync" element={<SyncCenter/>}/><Route path="/activity" element={<History/>}/>
     <Route path="/admin" element={member.role==='technical_admin'?<Admin/>:<Navigate to="/" replace/>}/>
     <Route path="*" element={<Navigate to="/" replace/>}/>
-  </Routes></main><nav className="floating-dock production-dock" aria-label="Main navigation"><div className="production-dock-indicator" aria-hidden="true"/>{navigation.map(n=><NavLink to={n.path} end={n.path==='/'} key={n.path} aria-label={n.name}><Icon name={n.icon} size={23}/><span>{n.name}</span></NavLink>)}</nav><Dialog open={!!editor} onOpenChange={open=>{if(!open)setEditor(null)}}><DialogContent className="app-dialog"><DialogHeader><DialogTitle>{editor?.record?'Edit':'Add'} {editor?kindLabels[editor.kind]:''}</DialogTitle><DialogDescription>Real business records. Amounts remain in your control.</DialogDescription></DialogHeader>{editor&&<RecordEditor key={`${editor.kind}-${editor.record?.id??'new'}`} kind={editor.kind} record={editor.record} vehicleScope={vehicleScope} initialData={editor.initialData} onClose={()=>setEditor(null)}/>}</DialogContent></Dialog></div></div>
+  </Routes></main><nav className="floating-dock production-dock" aria-label="Main navigation"><div className="production-dock-indicator" aria-hidden="true"/>{navigation.map(n=><NavLink to={n.path} end={n.path==='/'} key={n.path} aria-label={n.name}>{n.path==='/clients'&&clientsOverLimit>0?<span className="nav-alert-icon"><Icon name={n.icon} size={23}/><span className="nav-alert-badge" aria-label={`${clientsOverLimit} clients above balance limit`}>{clientsOverLimit}</span></span>:<Icon name={n.icon} size={23}/>}<span>{n.name}</span></NavLink>)}</nav><Dialog open={!!editor} onOpenChange={open=>{if(!open)setEditor(null)}}><DialogContent className="app-dialog"><DialogHeader><DialogTitle>{editor?.record?'Edit':'Add'} {editor?kindLabels[editor.kind]:''}</DialogTitle><DialogDescription>Real business records. Amounts remain in your control.</DialogDescription></DialogHeader>{editor&&<RecordEditor key={`${editor.kind}-${editor.record?.id??'new'}`} kind={editor.kind} record={editor.record} vehicleScope={vehicleScope} initialData={editor.initialData} onClose={()=>setEditor(null)}/>}</DialogContent></Dialog></div></div>
 }
 
 function More({add}:{add:(kind:RecordKind)=>void}) {
-  const {member,queue}=useWorkspace();const {preference:theme,setPreference}=useAppearance()
+  const {member,queue,clientPendingThresholdPaise,setClientPendingThreshold}=useWorkspace();const {preference:theme,setPreference}=useAppearance();const [threshold,setThreshold]=useState(clientPendingThresholdPaise==null?'':String(clientPendingThresholdPaise/100));const [savingThreshold,setSavingThreshold]=useState(false);const [thresholdMessage,setThresholdMessage]=useState('')
+  useEffect(()=>setThreshold(clientPendingThresholdPaise==null?'':String(clientPendingThresholdPaise/100)),[clientPendingThresholdPaise])
   const setTheme=(value:string)=>{if(value==='light'||value==='dark'||value==='system')setPreference(value)}
+  async function saveThreshold() {const amount=threshold.trim()===''?null:Number(threshold);if(amount!==null&&(!Number.isFinite(amount)||amount<0)){setThresholdMessage('Enter a valid non-negative amount.');return}setSavingThreshold(true);setThresholdMessage('');try{await setClientPendingThreshold(amount===null?null:Math.round(amount*100));setThresholdMessage('Balance limit saved.')}catch(error){setThresholdMessage(error instanceof Error?error.message:'Could not save the balance limit.')}finally{setSavingThreshold(false)}}
   return <>
     <div className="page-heading"><h1>Make it <strong>yours.</strong></h1><p>{member.display_name}{member.email&&<> · {member.email}</>} · {member.role.replaceAll('_',' ')}</p></div>
     <AnimatedContent className="settings-list" trigger="mount" distance={10} duration={.38} stagger={.035} initialOpacity={.6}>
@@ -78,6 +84,7 @@ function More({add}:{add:(kind:RecordKind)=>void}) {
     <div className="appearance-card"><span>Appearance</span><ToggleGroup type="single" value={theme} onValueChange={setTheme} className="appearance-toggle" aria-label="Appearance">
       <ToggleGroupItem value="light" aria-label="Light appearance">Light</ToggleGroupItem><ToggleGroupItem value="dark" aria-label="Dark appearance">Dark</ToggleGroupItem><ToggleGroupItem value="system" aria-label="System appearance">System</ToggleGroupItem>
     </ToggleGroup></div>
+    <form className="balance-threshold-settings record-card" onSubmit={event=>{event.preventDefault();void saveThreshold()}}><div className="settings-row-heading"><div><h2>Client balance limit</h2><p>Flag clients when their pending balance reaches this amount.</p></div><ContactActionIcon type="alert"/></div><label>Maximum pending balance (₹)<input type="number" min="0" step="0.01" inputMode="decimal" value={threshold} onChange={event=>setThreshold(event.target.value)} placeholder="No limit" disabled={member.role!=='technical_admin'}/></label>{clientPendingThresholdPaise!=null&&<p className="panel-note">Current limit: {formatMoney(clientPendingThresholdPaise)}</p>}{member.role==='technical_admin'?<div className="detail-actions"><Button type="submit" disabled={savingThreshold}>{savingThreshold?'Saving…':'Save limit'}</Button>{clientPendingThresholdPaise!=null&&<Button type="button" variant="outline" disabled={savingThreshold} onClick={()=>{setThreshold('');void setClientPendingThreshold(null)}}>Remove limit</Button>}</div>:<p className="panel-note">Only administrators can change this workspace setting.</p>}{thresholdMessage&&<p className="panel-note" role="status">{thresholdMessage}</p>}</form>
     <div className="vehicle-settings"><div><h2>Vehicles</h2><p>Add vehicles here. Their work and costs appear in Ledgers.</p></div><Button type="button" variant="outline" onClick={()=>add('vehicle')}>Add vehicle</Button></div>
     {member.role==='technical_admin'&&<NavLink className="setup-mockup-link" to="/admin">Signups, access and administration<Icon name="arrow-right-linear" size={18}/></NavLink>}
     <div className="more-notifications"><PushSettings/></div>

@@ -15,7 +15,8 @@ type Context = {
   records:AnyRecord[]; choices:AnyRecord[]; queue:QueueItem[];
   member:Membership;db:WorkspaceDatabase;client:ReturnType<typeof createWorkspaceClient>;sync:()=>Promise<void>;
   trialDeletionEnabled:boolean;syncing:boolean;syncError:string;create:(kind:RecordKind,data:Record<string,unknown>,state:RecordState,draftKey?:string)=>Promise<string>;
-  change:(record:AnyRecord,patch:Record<string,unknown>,state:RecordState,action?:Operation['action'],reason?:string,draftKey?:string)=>Promise<void>
+  change:(record:AnyRecord,patch:Record<string,unknown>,state:RecordState,action?:Operation['action'],reason?:string,draftKey?:string)=>Promise<void>;
+  clientPendingThresholdPaise:number|null;setClientPendingThreshold:(value:number|null)=>Promise<void>
 }
 const Workspace=createContext<Context|null>(null)
 export function useWorkspace() {const context=useContext(Workspace);if(!context)throw new Error('Workspace provider is missing.');return context}
@@ -33,6 +34,7 @@ export function WorkspaceProvider({config,children,offlineSubject}:{config:Publi
   const [syncing,setSyncing]=useState(false)
   const [syncError,setSyncError]=useState('')
   const [trialDeletionEnabled,setTrialDeletionEnabled]=useState(false)
+  const [clientPendingThresholdPaise,setClientPendingThresholdPaise]=useState<number|null>(null)
   const records=useLiveQuery(()=>db.records.toArray(),[db],[])
   const queue=useLiveQuery(()=>db.outbox.orderBy('created_at').filter(item=>item.status!=='resolved').toArray(),[db],[])
   const sync=useCallback(async()=>{
@@ -43,6 +45,7 @@ export function WorkspaceProvider({config,children,offlineSubject}:{config:Publi
       await db.storeMembership(current);setMember(current);setAccessError('');setNeedsApproval(false);setLoading(false)
       await engine.run(true)
       if(current.role==='technical_admin'){const result=await client.rpc('trial_deletion_enabled');setTrialDeletionEnabled(!result.error&&result.data===true)}else setTrialDeletionEnabled(false)
+      const threshold=await client.rpc('client_balance_threshold');setClientPendingThresholdPaise(!threshold.error&&typeof threshold.data==='number'?threshold.data:null)
     } catch(error) {
       if(error instanceof AccessError){setMember(null);setAccessError(error.message);setNeedsApproval(error instanceof ApprovalRequiredError);await db.metadata.put({key:'membership',value:null})}
       else setSyncError(error instanceof Error?error.message:'Unable to connect. Local work is preserved.')
@@ -74,8 +77,9 @@ export function WorkspaceProvider({config,children,offlineSubject}:{config:Publi
     validateRecord(record.kind,{...record.data,...patch},state)
     await enqueue({id:crypto.randomUUID(),record_id:record.id,kind:record.kind,action,expected_version:record.version,data:patch,state,reason,client_time:new Date().toISOString()},draftKey)
   }
+  async function setClientPendingThreshold(value:number|null) {if(member?.role!=='technical_admin')throw new Error('Only administrators can change workspace settings.');const {data,error}=await client.rpc('set_client_balance_threshold',{threshold_paise:value});if(error)throw new Error(error.message);setClientPendingThresholdPaise(typeof data==='number'?data:null)}
   if(loading)return <WorkspaceLoading checkingAccess/>
   if(!member)return <WorkspaceAccess needsApproval={needsApproval} message={accessError||syncError} syncing={syncing} retry={sync}/>
   const choices=localChoices(records,queue,member.clerk_subject)
-  return <Workspace.Provider value={{records,choices,queue,member,db,client,sync,trialDeletionEnabled,syncing,syncError,create,change}}>{children}</Workspace.Provider>
+  return <Workspace.Provider value={{records,choices,queue,member,db,client,sync,trialDeletionEnabled,syncing,syncError,create,change,clientPendingThresholdPaise,setClientPendingThreshold}}>{children}</Workspace.Provider>
 }

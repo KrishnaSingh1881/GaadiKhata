@@ -18,8 +18,8 @@ import {RecordProvenance} from './RecordProvenance'
 import {useFavourites} from '../data/useFavourites'
 import {validateRecord,type AnyRecord,type RecordKind,type RecordState} from '../domain/records'
 import {Button} from '../components/ui/button'
-import {MaterialSelect} from '../components/MaterialSelect'
 import {Dialog,DialogContent,DialogHeader,DialogTitle,DialogDescription} from '../components/ui/dialog'
+import {MaterialSelect} from '../components/MaterialSelect'
 
 export const kindLabels:Record<RecordKind,string>={vehicle:'Vehicle',client:'Client',driver:'Driver',partner:'Partner',material:'Material',route:'Route',site:'Work site',expense_category:'Expense category',field_template:'Expense fields',work:'Work',expense:'Expense',payment:'Client payment',driver_payment:'Driver payment',partner_entry:'Partner entry',expense_settlement:'Credit settlement'}
 export function recordName(record:AnyRecord|undefined) {return !record?'Not selected':record.kind==='vehicle'?vehicleLabel(record.data,false):'name'in record.data?record.data.name:record.kind==='work'?record.data.description||`${record.data.work_type} work`:kindLabels[record.kind]}
@@ -109,12 +109,6 @@ export function RecordEditor({kind,record,initialData,vehicleScope,onClose,onSav
   if(kind==='work'||moneyKinds.includes(kind))fields.push({key:'note',label:'Note'})
   function choose(key:string,value:string) {
     const next={...values,[key]:value}
-    if(key==='vehicle_id'&&kind==='work') {
-      const vehicle=choices.find(r=>r.id===value)
-      if(vehicle?.kind==='vehicle'&&!next.driver_id)next.driver_id=vehicle.data.driver_id??''
-      const recent=records.filter(r=>r.kind==='work'&&r.data.vehicle_id===value&&r.state!=='cancelled').sort((a,b)=>b.created_at.localeCompare(a.created_at))[0]
-      if(recent?.kind==='work')for(const field of ['client_id','material_id','site_id','unit'] as const)if(!next[field]&&recent.data[field])next[field]=String(recent.data[field])
-    }
     remember(next,workType,state,extraFields)
   }
   async function save(event:FormEvent<HTMLFormElement>) {
@@ -131,6 +125,8 @@ export function RecordEditor({kind,record,initialData,vehicleScope,onClose,onSav
       if(newSite)data.site_id=crypto.randomUUID()
       const newDriver=typeof data.driver_id==='string'&&data.driver_id.startsWith('new:')?data.driver_id.slice(4).trim():''
       if(newDriver)data.driver_id=crypto.randomUUID()
+      const newMaterial=typeof data.material_id==='string'&&data.material_id.startsWith('new:')?data.material_id.slice(4).trim():''
+      if(newMaterial)data.material_id=crypto.randomUUID()
       let resolvedValues={...values}
       if(kind==='work'){data.work_type=workType;if(workType==='JCB'){data.unit='hours';data.material_id=null;data.route_id=null}else data.site_id=null}
       let parsedExtras:ReturnType<typeof parseCustomFields>
@@ -160,6 +156,13 @@ export function RecordEditor({kind,record,initialData,vehicleScope,onClose,onSav
         const driverId=existing?.id??await create('driver',{name:newDriver},'active')
         parsed=validateRecord(kind,{...parsed,driver_id:driverId},state)
         resolvedValues={...resolvedValues,driver_id:driverId}
+        remember(resolvedValues,workType,state,extraFields)
+      }
+      if(newMaterial) {
+        const existing=choices.find(row=>row.kind==='material'&&row.state==='active'&&normalName(row.data.name)===normalName(newMaterial))
+        const materialId=existing?.id??await create('material',{name:newMaterial},'active')
+        parsed=validateRecord(kind,{...parsed,material_id:materialId},state)
+        resolvedValues={...resolvedValues,material_id:materialId}
         remember(resolvedValues,workType,state,extraFields)
       }
       let savedId=record?.id??''
