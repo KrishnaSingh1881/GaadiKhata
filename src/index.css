@@ -120,10 +120,18 @@ svg {flex-shrink:0}
 .app-header {display:flex;align-items:center;justify-content:space-between;padding:9px 23px 16px;min-height:66px;flex-shrink:0}
 .app-brand {display:flex;align-items:center;gap:8px;color:var(--ink);background:none;text-align:left}
 .app-brand>svg {color:var(--warm)}
-.icchamani-logo {display:block;flex:0 0 auto}
-.icchamani-logo-mark {width:30px;height:30px;object-fit:cover;object-position:center 24%;border-radius:8px}
-.icchamani-logo-full {width:144px;height:auto;object-fit:contain}
-.app-brand>span {font-size:17px;font-family:'Manrope Variable',sans-serif;letter-spacing:-.025em;font-weight:750}
+.icchamani-logo {display:block;flex:0 0 auto;object-fit:contain}
+.icchamani-logo-badge {display:grid;place-items:center;width:42px;height:42px;flex:0 0 42px;border:1px solid #d9cdb9;border-radius:12px;background:#f7f2e8}
+.icchamani-logo-badge>span {display:grid;place-items:center}
+.icchamani-logo-mark {width:calc(100% - 12px);height:calc(100% - 12px)}
+.icchamani-logo-full {width:144px;height:auto}
+:root[data-theme='dark'] .icchamani-logo {filter:none}
+ .brand-lockup {display:flex;align-items:center;gap:10px;min-width:0}
+.brand-copy {display:flex;flex-direction:column;min-width:0;gap:3px}
+.brand-copy strong {font-size:clamp(13px,2.8vw,17px);line-height:1.25;font-weight:700;letter-spacing:-.02em}
+.brand-copy small {font-size:10px!important;line-height:1.4;font-weight:400;color:var(--muted);margin:0!important}
+.app-brand {min-width:0;margin-right:12px}
+.app-brand>span:not(.icchamani-logo-badge) {font-size:17px;font-family:'Manrope Variable',sans-serif;letter-spacing:-.025em;font-weight:750}
 .app-brand small {font-family:'DM Sans Variable',sans-serif;display:block;font-size:9px;font-weight:450;letter-spacing:.01em;color:var(--muted);margin-top:2px}
 .header-actions {display:flex;gap:4px}
 .icon-button {width:38px;height:40px;display:grid;place-items:center;background:none;color:var(--ink);border-radius:50%;position:relative}
@@ -504,8 +512,6 @@ svg {flex-shrink:0}
 .home-recent>.record-card+.record-card {margin-top:12px}
 .production-app .money-breakdown {display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
 .production-app .header-actions {align-items:center;gap:10px}
-.production-app .app-brand>svg {display:none}
-.production-app .app-brand:before {content:"";display:block;width:30px;height:30px;flex:0 0 30px;background:url('/icchamani-logo.svg?v=2') center/contain no-repeat}
 .production-app .work-toolbar {flex-wrap:wrap}
 .production-app .work-toolbar .search-box {flex:1;min-width:0}
 .record-create-action {display:flex;flex-direction:column;align-items:flex-end;gap:6px;max-width:100%;flex-shrink:0}

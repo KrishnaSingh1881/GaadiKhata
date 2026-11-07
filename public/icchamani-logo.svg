@@ -1,5 +1,6 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 600" role="img" aria-labelledby="title desc">
-  <title id="title">Icchamani Construction</title>
-  <desc id="desc">Icchamani Construction logo</desc>
-  <image href="/icchamani-logo.png" width="600" height="600" preserveAspectRatio="xMidYMid meet"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="200 120 202 224">
+<title>Icchamani Construction emblem</title>
+<path fill="#142b39" d="M216 155 255 125V304L216 325Z"/>
+<path fill="#ae8737" d="M263 192C287 151 345 138 389 174L369 198C340 173 306 179 291 207C274 239 290 277 321 286C339 292 356 285 369 274L397 309L369 325L293 283L273 294L263 282Z"/>
+<path fill="#142b39" d="M200 340 293 291 379 340 293 304Z M284 317H292V325H284Z M294 317H302V325H294Z M284 327H292V335H284Z M294 327H302V335H294Z"/>
 </svg>
